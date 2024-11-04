@@ -1,6 +1,5 @@
 from django.db import models
 from counseling.models import Psychiatrist
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
 class Profile(models.Model):

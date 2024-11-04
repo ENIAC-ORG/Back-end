@@ -36,6 +36,20 @@ SECURE_SSL_REDIRECT = False
 # Application definition
 
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'eniakgroupiust@gmail.com'#env.str('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = 'otawrhfscdedswzd'# '%_giw.9?5=3aNQr'#env.str('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+# REDIS_HOST = os.environ.get('REDIS_HOST', '154.211.2.87') 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://localhost:5173' , 
+    'http://127.0.0.1:5173' , 
+]
+
 # Set secure cookies
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
@@ -82,15 +96,21 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME':  timedelta(minutes=15),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
 INSTALLED_APPS = [
-    "corsheaders",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     "accounts",
     "rest_framework",
     "rest_framework_swagger",
     "rest_framework_simplejwt.token_blacklist",
     "Profile",
-    "drf_yasg",
     "counseling",
+    "drf_yasg",
     "background_task",
     'django.contrib.sites' ,
     "reservation",
@@ -113,7 +133,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
+    # "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -158,27 +178,27 @@ WSGI_APPLICATION = 'BackEnd.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
-
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'TherapyDB',
-#         'USER': 'postgres',
-#         'PASSWORD': 'Hgbr@@5391',
-#         'HOST': 'postgreSQL',
-#         # 'HOST': 'localhost',
-#         'PORT': '5432',
-#         'DISABLE_SERVER_SIDE_CURSORS': True,
-
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'TherapyDB',
+        'USER': 'postgres',
+        'PASSWORD': 'Hgbr@@5391',
+        'HOST': 'postgreSQL',
+        # 'HOST': 'localhost',
+        'PORT': '5432',
+        'DISABLE_SERVER_SIDE_CURSORS': True,
+
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
