@@ -7,6 +7,7 @@ from utils.therapy_tests import GetMBTIresults ,GlasserResults
 from counseling.models import Pationt ,Psychiatrist
 from .models import TherapyTests , GlasserTest , MedicalRecord , TreatementHistory , MedicalRecordPermission 
 from rest_framework import status 
+import json 
 from datetime import datetime , date , timedelta 
 from django.utils import timezone
 from django.http.request import QueryDict
