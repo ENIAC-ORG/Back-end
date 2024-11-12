@@ -8,3 +8,4 @@ class TherapytestsConfig(AppConfig):
     def ready(self):
         import TherapyTests.signals
         
+# /////////////////////

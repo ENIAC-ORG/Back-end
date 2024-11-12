@@ -53,8 +53,10 @@ CSRF_TRUSTED_ORIGINS = [
 # Set secure cookies
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+SITE_ID = 1
 
-
+WEBSITE_URL = os.environ.get('WEBSITE_URL','http://localhost:8000/') 
+# /////////////////////ووووووووو
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES' : [
         'rest_framework.permissions.AllowAny'
@@ -141,15 +143,6 @@ MIDDLEWARE = [
     # "oauth_demo.middleware.oauth.OAuthMiddleware",
 ]
 
-# MIDDLEWARE = [
-#     'django.middleware.security.SecurityMiddleware',
-#     'django.contrib.sessions.middleware.SessionMiddleware',
-#     'django.middleware.common.CommonMiddleware',
-#     'django.middleware.csrf.CsrfViewMiddleware',
-#     'django.contrib.auth.middleware.AuthenticationMiddleware',
-#     'django.contrib.messages.middleware.MessageMiddleware',
-#     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-# ]
 
 ROOT_URLCONF = 'BackEnd.urls'
 
