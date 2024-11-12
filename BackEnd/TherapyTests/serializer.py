@@ -6,23 +6,35 @@ from django.forms.models import model_to_dict
 from .models import TreatementHistory , TherapyTests , GlasserTest 
 
 
-class MedicalQueryRecord(serializers.Serializer) : 
-    
-    id = serializers.IntegerField()
-    nationalID = serializers.CharField(max_length = 10)
-    name = serializers.CharField(max_length = 40 )
-    patient= serializers.IntegerField()
-    gender = serializers.CharField(max_length = 2 )
-    # class Meta:
-    #     # model = MedicalRecord
-    #     fields = [ 'id'  , 'nationalID' , 'name']
-
-
 class TreatementHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = TreatementHistory
-        fields = ('end_date' , 'length' , 'is_finished' , 'reason_to_leave' , 'approach' , 'special_drugs' , 'id') 
+        # fields = ('end_date' , 'length' , 'is_finished' , 'reason_to_leave' , 'approach' , 'special_drugs' , 'id') 
+        fields = '__all__'  
 
+# class MedicalQueryRecord(serializers.Serializer) : 
+    # id = serializers.IntegerField()
+    # nationalID = serializers.CharField(max_length = 10)
+    # name = serializers.CharField(max_length = 40 )
+    # patient= serializers.IntegerField()
+    # gender = serializers.CharField(max_length = 2 )
+
+    # class Meta:
+    #     # model = MedicalRecord
+    #     fields = [ 'id'  , 'nationalID' , 'name']
+    
+class MedicalQueryRecord(serializers.ModelSerializer):
+    treatementHistory1 = TreatementHistorySerializer(read_only=True)
+    treatementHistory2 = TreatementHistorySerializer(read_only=True)
+    treatementHistory3 = TreatementHistorySerializer(read_only=True)
+
+    class Meta:
+        model = MedicalRecord
+        fields = [
+            'pationt', 'child_num', 'therapyTests', 'name', 'created_at', 'age',
+            'treatementHistory1', 'treatementHistory2', 'treatementHistory3', 
+            'gender', 'family_history', 'nationalID'
+        ]
 
 class GlasserSerializer( serializers.ModelSerializer) : 
     class Meta : 

@@ -14,7 +14,6 @@ from django.http.request import QueryDict
 from .serializer import MedicalRecordSerializer ,MedicalGetRecord ,TreatementHistorySerializer , ThrapyTestSerializer , GlasserSerializer ,MedicalQueryRecord
 from django.forms.models import model_to_dict
 from fuzzywuzzy import fuzz
-# https://www.youtube.com/watch?v=P2_j1P51dNI&list=RD1mZhwXMl8vc&index=27
 
 class MedicalRecordView(viewsets.ModelViewSet ) : 
     permission_classes = [IsAuthenticated]
