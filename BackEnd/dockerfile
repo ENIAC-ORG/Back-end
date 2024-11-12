@@ -19,6 +19,7 @@ RUN /eniac_venv/bin/pip install -r requirements.txt
 ENV VIRTUAL_ENV=/eniac_venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
+RUN apt-get install -y netcat 
 # Copy project
 COPY . /app/
 # COPY data.sql data/
