@@ -22,6 +22,7 @@ class EmailThread(threading.Thread):
         self.access_token = token
 
     def run(self):
+        print( "run emailllllllllll ")
         self.email_handler.send_verification_message(
             subject=self.subject,
             recipient_list=self.recipient_list,

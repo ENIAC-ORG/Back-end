@@ -1,16 +1,12 @@
-from django.http import HttpResponse
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import  Response
 from rest_framework.views import APIView 
 from rest_framework.generics import CreateAPIView , GenericAPIView
 from .serializers import SignUpSerializer , UserSerializer , ActivationConfirmSerializer  ,ActivationResendSerializer \
     ,ForgotPasswordSerializer , ResetPasswordSerializer , LoginSerializer , CompleteInfoSerializer ,ChangePasswordSerializer
 from .models import User
-from datetime import datetime
-from django.contrib.sites.shortcuts import get_current_site
 from .utils import generate_tokens , EmailThread
 import random
 from django.conf import settings
@@ -19,16 +15,16 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
-from django.utils.decorators import method_decorator
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from utils.project_variables import MAX_VERIFICATION_TRIES
 from counseling.models import Pationt 
+from rest_framework.permissions import AllowAny
 
 class SignUpView(CreateAPIView):
     serializer_class = SignUpSerializer
+    permission_classes = [AllowAny]
     def post(self,request ) : 
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
