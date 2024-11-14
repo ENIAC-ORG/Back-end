@@ -18,10 +18,11 @@ RUN /eniac_venv/bin/pip install -r requirements.txt
 
 ENV VIRTUAL_ENV=/eniac_venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
+ENV PYTHONUNBUFFERED=1
+RUN apt-get install -y netcat 
 # Copy project
 COPY . /app/
 # COPY data.sql data/
 EXPOSE 8000
 
-# CMD [ "python" , "manage.py" , "runserver" ]
+# CMD [ "python" , "-u" , "manage.py" , "runserver" ]
