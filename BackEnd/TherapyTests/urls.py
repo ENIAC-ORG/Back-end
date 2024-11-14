@@ -1,5 +1,8 @@
 from django.urls import path 
 from .views import *
+import logging 
+logger = logging.getLogger(__name__)
+logger.debug("hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
 
 urlpatterns = [
     path( 'MBTI/' , GetMBTItest.as_view({'post' : 'create' , 'get' : 'retrieve'}) , name='MBTI') ,

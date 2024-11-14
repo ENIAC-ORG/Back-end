@@ -242,3 +242,34 @@ AUTHENTICATION_BACKENDS = (
         'django.contrib.auth.backends.ModelBackend',
         'django.contrib.auth.backends.RemoteUserBackend',
 )
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s %(levelname)s %(name)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',  # Capture all logs at DEBUG level
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
+    },
+    'loggers': {
+        logger_name: {
+            'level': 'INFO',  # Set to INFO or DEBUG as needed
+            'handlers': ['console'],
+            'propagate': False,
+        } for logger_name in
+        ('django', 'django.request', 'django.db.backends', 'django.template', 
+         'accounts', 'counseling', 'Profile', 'reservation', 'TherapyTests', 
+         'Rating', 'Doctorpanel', 'urllib3', 'asyncio')
+    },
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    }
+}

@@ -21,23 +21,6 @@ class TherapyTests(models.Model) :
     MBTItest = models.CharField( max_length=6 , blank=True , null=True  )
     glasserTest = models.ForeignKey( GlasserTest , on_delete=models.DO_NOTHING  , blank=True , null=True)
 
-class TreatementHistory(models.Model): 
-    end_date = models.DateField()
-    length = models.IntegerField() # based on month 
-    is_finished = models.BooleanField(default=True )
-    reason_to_leave = models.TextField(blank=True , max_length= 500 )
-    approach = models.TextField( max_length= 30 ,blank=True , null=True)
-    special_drugs = models.TextField(max_length=200 , blank=True )
-    
-    def to_dict(self):
-        return {
-            'end_date': self.end_date,
-            'length': self.length,
-            'is_finished': self.is_finished,
-            'reason_to_leave': self.reason_to_leave,
-            'approach': self.approach,
-            'special_drugs': self.special_drugs
-        }
 
 class MedicalRecord(models.Model) : 
     GENDER_Male = 'مرد'
@@ -52,10 +35,10 @@ class MedicalRecord(models.Model) :
     therapyTests = models.OneToOneField( TherapyTests , on_delete=models.DO_NOTHING , blank=True , null=True )
     name = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    age = models.IntegerField(range(4 , 80 ))
-    treatementHistory1 = models.ForeignKey(TreatementHistory , on_delete=models.DO_NOTHING , null=True,blank=True , related_name="treatement_history1")
-    treatementHistory2 = models.ForeignKey(TreatementHistory , on_delete=models.DO_NOTHING , null=True , blank=True ,related_name="treatement_history2")
-    treatementHistory3 = models.ForeignKey(TreatementHistory , on_delete=models.DO_NOTHING , null=True , blank=True ,related_name="treatement_history3")
+    age = models.IntegerField(range(12 , 80 ))
+    # treatementHistory1 = models.ForeignKey(TreatementHistory , on_delete=models.DO_NOTHING , null=True,blank=True , related_name="treatement_history1")
+    # treatementHistory2 = models.ForeignKey(TreatementHistory , on_delete=models.DO_NOTHING , null=True , blank=True ,related_name="treatement_history2")
+    # treatementHistory3 = models.ForeignKey(TreatementHistory , on_delete=models.DO_NOTHING , null=True , blank=True ,related_name="treatement_history3")
     gender = models.CharField(max_length=5 , choices=GENDER_CHOICES ,null=True )
     family_history = models.BooleanField(default=False )
     nationalID = models.CharField(max_length=10 , blank=False )
@@ -82,13 +65,29 @@ class MedicalRecord(models.Model) :
     
     def determine_name(self):
         return self.pationt.get_fullname()
-        
     
     def determine_age(self ) : 
         now_year = datetime.datetime.now().year
         print("now " ,  now_year , "your age : " ,self.pationt.user.date_of_birth.year  )
         return now_year - self.pationt.user.date_of_birth.year 
     
+class TreatementHistory(models.Model): 
+    end_date = models.DateField()
+    length = models.IntegerField() # based on month 
+    is_finished = models.BooleanField(default=True )
+    reason_to_leave = models.TextField(blank=True , max_length= 500 )
+    approach = models.TextField( max_length= 30 ,blank=True , null=True)
+    special_drugs = models.TextField(max_length=200 , blank=True )
+    medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE, related_name='treatment_histories')
+    def to_dict(self):
+        return {
+            'end_date': self.end_date,
+            'length': self.length,
+            'is_finished': self.is_finished,
+            'reason_to_leave': self.reason_to_leave,
+            'approach': self.approach,
+            'special_drugs': self.special_drugs
+        }
       
 class MedicalRecordPermission( models.Model ) : 
     pationt = models.ForeignKey( Pationt , on_delete=models.CASCADE ) 
