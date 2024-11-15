@@ -4,8 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import  Response
 from rest_framework.views import APIView 
 from rest_framework.generics import CreateAPIView , GenericAPIView
-from .serializers import SignUpSerializer , UserSerializer , ActivationConfirmSerializer  ,ActivationResendSerializer \
-    ,ForgotPasswordSerializer , ResetPasswordSerializer , LoginSerializer , CompleteInfoSerializer ,ChangePasswordSerializer
+from .serializers import *
 from .models import User
 from .utils import generate_tokens , EmailThread
 import random
@@ -24,25 +23,30 @@ from rest_framework.permissions import AllowAny
 
 class SignUpView(CreateAPIView):
     serializer_class = SignUpSerializer
-    permission_classes = [AllowAny]
     def post(self,request ) : 
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         email = str.lower(validated_data['email'])
+        is_doctor = validated_data.get('is_doctor', False)
+        role = User.TYPE_PENDING if is_doctor else User.TYPE_USER
+
         # verification code 
         verification_code = str(random.randint(1000, 9999))
-        user = User.objects.filter(email__iexact = email )
+        # 88888888888888888888888888888888888888888888888888888888888888
+        # user = User.objects.filter(email__iexact = email )
         user = User.objects.create(
             email = email, 
             password = make_password( validated_data['password1']) ,
             verification_code=verification_code,
             verification_tries_count=1,
+            role=role,
             # last_verification_sent=datetime.now(),
         )
 
         # TODO   make sure it is locate in right place 
-        Pationt.objects.create( user= user )       
+        if role != User.TYPE_PENDING:
+            Pationt.objects.create(user=user)     
         # varify email 
         token = generate_tokens(user.id)["access"]
         subject = 'تایید ایمیل ثبت نام'
@@ -63,7 +67,6 @@ class SignUpView(CreateAPIView):
             "url": f'{settings.WEBSITE_URL}accounts/activation_confirm/{token}/'
         }
         return Response(user_data, status=status.HTTP_201_CREATED)
-
 
         
 class ActivationConfirmView(GenericAPIView):
@@ -240,7 +243,7 @@ class ResetPassword(GenericAPIView) :
 class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer
     def post(self, request, *args, **kwargs):
-        print("*************************************")
+    
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
@@ -317,5 +320,37 @@ class LogoutView(APIView):
             logout(request)
             return Response(data={'detail': 'Logged out successfully'}, status=status.HTTP_200_OK)
         return Response(data={'detail': 'Not logged in'}, status=status.HTTP_400_BAD_REQUEST)
+    
 
+class DoctorApplicationView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = DoctorApplicationSerializer
+
+    def post(self, request):
+        user = request.user 
+       
+        if user.role != User.TYPE_PENDING:
+            return Response({'message': 'Only pending users can apply as doctors.'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+
+            # Update the user's information with validated data
+            user.firstname = validated_data['firstname']
+            user.lastname = validated_data['lastname']
+            pending_doctor = Pending_doctor.objects.create(**validated_data)
+            
+            pending_doctor.save()
+
+            # Send an email notification to the user
+            subject =  '. درخواست شما در حال بررسی است'
+            email_handler.send_doctor_application_email(
+                subject=subject,
+                recipient_list=[user.email],
+                user=user
+            )
+            return Response({'message': 'Application submitted. Awaiting admin approval.'}, status=status.HTTP_200_OK)
+        else : 
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

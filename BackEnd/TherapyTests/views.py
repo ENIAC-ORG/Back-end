@@ -307,8 +307,7 @@ class GetMBTItest(viewsets.ModelViewSet) :
                 "result" : mbti["final"] 
             }
             return Response( data= data , status=status.HTTP_200_OK )
-    
-
+        
     def retrieve(self, request, *args, **kwargs):
         user = request.user
         pationt = Pationt.objects.filter(user = user ).first()

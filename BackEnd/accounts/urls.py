@@ -12,6 +12,7 @@ urlpatterns = [
     path('Login/',LoginView.as_view(),name='Login'),
     path('Logout/',LogoutView.as_view(),name='Logout'),
     path('change_password/' , ChangePasswordView.as_view() , name='change_password'),
-    path('get_user/' , RetrieveUserData.as_view() , name='get_user')
+    path('get_user/' , RetrieveUserData.as_view() , name='get_user'),
+    path('doctorapplication/',DoctorApplicationView.as_view(),name='doctorapplication')
 ]
 # ببببببببببببببب
