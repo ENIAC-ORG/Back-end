@@ -30,7 +30,7 @@ class Psychiatrist(models.Model ) :
     user = models.ForeignKey(User, on_delete=models.CASCADE , unique=True )
     image = models.ImageField(upload_to='images/doctors/profile_pics', null=True,blank=True )  #, default='images/doctors/profile_pics/default.png')
     field = models.CharField( max_length=255, choices=CHOICES , default=TYPE_USER)
-
+    doctorate_code = models.CharField(max_length=50, blank=True,unique=True, null=True)
     def get_default_profile_image(self):
     
         if self.user.gender == 'M':

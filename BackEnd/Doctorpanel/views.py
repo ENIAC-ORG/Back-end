@@ -297,7 +297,8 @@ class AdminDoctorPannel(viewsets.ModelViewSet):
             pending_doctor = doctors.first()
             user = pending_doctor.User
             psychiatrist = Psychiatrist.objects.create(
-                user = user
+                user = user , 
+                doctorate_code = pending_doctor.doctorate_code 
             )
             psychiatrist.save()
             pending_doctor.delete()
@@ -323,7 +324,7 @@ class AdminDoctorPannel(viewsets.ModelViewSet):
         try : 
             pending_doctor = doctors.first()
             user = pending_doctor.User
-            
+
             if pending_doctor.number_of_application == 0 : 
                 pending_doctor.delete()
                 user.delete()
