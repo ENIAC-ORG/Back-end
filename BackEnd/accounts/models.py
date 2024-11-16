@@ -146,8 +146,8 @@ class User(AbstractBaseUser):
 
 
 class Pending_doctor(models.Model): 
-    User = models.ForeignKey(User, on_delete=models.DO_NOTHING , unique=True)
-    doctorate_code = models.CharField(max_length=50, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING , unique=True)
+    doctorate_code = models.CharField(max_length=50, blank=True,unique=True, null=True)
     firstname = models.CharField(max_length=20 , blank=True, null = True )
     lastname = models.CharField(max_length=30 , blank=True, null = True )
-    
+    number_of_application = models.IntegerField(default=5 )

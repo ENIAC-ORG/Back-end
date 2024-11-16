@@ -11,7 +11,6 @@ class DoctorPanelSerializer(serializers.Serializer):
     def validate(self, attrs):
         return super().validate(attrs) 
     
-
 class ReservationListSerializer(serializers.ModelSerializer):
     patient_full_name = serializers.SerializerMethodField()
     class Meta:

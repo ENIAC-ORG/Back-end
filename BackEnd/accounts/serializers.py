@@ -22,9 +22,7 @@ class CompleteInfoSerializer(serializers.ModelSerializer) :
         fields = ['firstname' , 'lastname' , 'phone_number' , 'date_of_birth','gender' ]
     
     def validate(self, attrs):
-        return super().validate(attrs)    
-   
-
+        return super().validate(attrs)       
 
 class SignUpSerializer(serializers.ModelSerializer):
 
@@ -172,8 +170,9 @@ class LoginSerializer(serializers.Serializer):
     
 class DoctorApplicationSerializer(serializers.ModelSerializer):
     class Meta:
+        id = serializers.IntegerField()
         model = Pending_doctor
-        fields = ['firstname', 'lastname', 'doctorate_code']
+        fields = ['id', 'firstname', 'lastname', 'doctorate_code']
 
     def validate(self, attrs):
         if not attrs.get('firstname') or not attrs.get('lastname') or not attrs.get('doctorate_code'):

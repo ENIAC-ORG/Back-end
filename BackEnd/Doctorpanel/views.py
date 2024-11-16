@@ -16,8 +16,14 @@ from datetime import datetime, timedelta
 from .models import FreeTime
 from rest_framework import generics, status
 from rest_framework.status import HTTP_404_NOT_FOUND
-from datetime import datetime, time
+from datetime import datetime
 from rest_framework.permissions import IsAuthenticated
+from accounts.serializers import DoctorApplicationSerializer
+from rest_framework import viewsets
+from django.db.models import Q, Value, CharField
+from django.db.models.functions import Concat
+from django.contrib.postgres.search import TrigramSimilarity  # For PostgreSQL databases
+from accounts.models import Pending_doctor , User
 
 class DoctorPanelView(viewsets.ModelViewSet):
     serializer_class=FreeTimeSerializer
@@ -249,11 +255,95 @@ class DoctorPanelView(viewsets.ModelViewSet):
     #     return Response({'success': 'Free times updated successfully.'}, status=status.HTTP_200_OK)
 
 
+class AdminDoctorPannel(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = Pending_doctor.objects.all()
+    serializer_class = DoctorApplicationSerializer
+    def get_queryset(self):
+        """
+        Perform advanced search by combining firstname and lastname into a single field
+        and applying similarity search on the combined name and doctorate_code.
+        """
+        queryset = super().get_queryset()
+        search_query = self.request.query_params.get('search', None)
 
+        if search_query:
+            # Combine firstname and lastname for similarity matching
+            queryset = queryset.annotate(
+                full_name=Concat('firstname', Value(' '), 'lastname', output_field=CharField())
+            )
+            # Apply similarity filtering
+            queryset = queryset.filter(
+                Q(full_name__icontains=search_query) |
+                Q(doctorate_code__icontains=search_query)
+            ).annotate(
+                name_similarity=TrigramSimilarity('full_name', search_query),
+                code_similarity=TrigramSimilarity('doctorate_code', search_query)
+            ).filter(
+                Q(name_similarity__gte=0.3) | Q(code_similarity__gte=0.3)  # Adjust similarity threshold as needed
+            ).order_by('-name_similarity', '-code_similarity')
+
+        return queryset
+
+
+    def accept(self , request, id): 
+        user = request.user
+        if user.role != User.TYPE_ADMIN : 
+            return Response({'message': 'Only ADMIN user can access this url.'}, status=status.HTTP_403_FORBIDDEN)
+        doctors = Pending_doctor.objects.filter(id= id)
+        if not doctors.exists(): 
+            return Response({'message': 'There is not pending doctor with this id.'}, status=status.HTTP_400_BAD_REQUEST)
+        try : 
+            pending_doctor = doctors.first()
+            user = pending_doctor.User
+            psychiatrist = Psychiatrist.objects.create(
+                user = user
+            )
+            psychiatrist.save()
+            pending_doctor.delete()
+            # send email to doctor say the reason :)  
+            return Response(
+                {'message': 'Psychiatrist successfully created and pending doctor removed.'},
+            status=status.HTTP_200_OK )
         
+        except Exception as e:
+            return Response(
+                {'message': f'An error occurred: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
-
+    def deny(self , request, id): 
+        user = request.user
+        if user.role != User.TYPE_ADMIN : 
+            return Response({'message': 'Only ADMIN user can access this url.'}, status=status.HTTP_403_FORBIDDEN)
+        doctors = Pending_doctor.objects.filter(id= id)
+        if not doctors.exists(): 
+            return Response({'message': 'There is not pending doctor with this id.'}, status=status.HTTP_400_BAD_REQUEST)
+        try : 
+            pending_doctor = doctors.first()
+            user = pending_doctor.User
+            
+            if pending_doctor.number_of_application == 0 : 
+                pending_doctor.delete()
+                user.delete()
+                return Response(
+                {'message': 'You have reached the number of allowed applicaton.you can not request an other time.'},
+            status=status.HTTP_400_BAD_REQUEST )
+            else : 
+                message = request.data.get('message')
+                # send email to pending use and say the reason of deny .         
+                pending_doctor.number_of_application -= 1 
+                pending_doctor.save()
+                return Response(
+                    {'message': 'Ther is problem in the application of pending doctor.'},
+                status=status.HTTP_204_NO_CONTENT)
+        
+        except Exception as e:
+            return Response(
+                {'message': f'An error occurred: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
             
 
         
