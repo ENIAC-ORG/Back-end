@@ -49,3 +49,38 @@ def send_telegram_account_verification_message(subject, recipient_list, verifica
     send_forget_password_verification_message( subject= subject , recipient_list= recipient_list , verification_token=verification_token )
 
 
+def send_doctor_application_email(subject, recipient_list, user):
+    context = {
+        'firstname': user.firstname,
+        'lastname': user.lastname,
+        'doctorate_code': user.doctorate_code,
+    }
+
+    html_message = render_to_string('doctor_application_email.html', context)
+    email = EmailMultiAlternatives(subject, '', EMAIL_HOST_USER, recipient_list)
+    email.attach_alternative(html_message, "text/html")
+    email.send()
+
+def send_doctor_accept_email(subject, recipient_list, user):
+    context = {
+        'firstname': user.firstname,
+        'lastname': user.lastname,
+        'doctorate_code': user.doctorate_code,
+    }
+
+    html_message = render_to_string('doctor_accept_email.html', context)
+    email = EmailMultiAlternatives(subject, '', EMAIL_HOST_USER, recipient_list)
+    email.attach_alternative(html_message, "text/html")
+    email.send()
+
+def send_doctor_deny_email(subject, recipient_list, user):
+    context = {
+        'firstname': user.firstname,
+        'lastname': user.lastname,
+        'doctorate_code': user.doctorate_code,
+    }
+
+    html_message = render_to_string('doctor_deny_email.html', context)
+    email = EmailMultiAlternatives(subject, '', EMAIL_HOST_USER, recipient_list)
+    email.attach_alternative(html_message, "text/html")
+    email.send()
