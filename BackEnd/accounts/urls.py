@@ -15,4 +15,3 @@ urlpatterns = [
     path('get_user/' , RetrieveUserData.as_view() , name='get_user'),
     path('doctorapplication/',DoctorApplicationView.as_view(),name='doctorapplication')
 ]
-# ببببببببببببببب
