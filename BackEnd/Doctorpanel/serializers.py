@@ -33,4 +33,6 @@ class FreeTimeSerializer(serializers.ModelSerializer):
         fields = ['month','day', 'time']
 
     def validate(self, attrs):
-        return super().validate(attrs)
+        if not attrs.get('month') or not attrs.get('day') or not attrs.get('time'):
+            raise serializers.ValidationError('All fields are required.')
+        return attrs
