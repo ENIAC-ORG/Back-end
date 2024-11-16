@@ -84,3 +84,4 @@ def send_doctor_deny_email(subject, recipient_list, user):
     email = EmailMultiAlternatives(subject, '', EMAIL_HOST_USER, recipient_list)
     email.attach_alternative(html_message, "text/html")
     email.send()
+#1111
