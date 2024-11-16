@@ -46,11 +46,12 @@ EMAIL_USE_TLS = True
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'http://localhost:5173' , 
-    'http://127.0.0.1:5173' , 
+    'http://127.0.0.1:80',
+    'http://localhost/' , 
+    'http://localhost:80/'
 ]
 
-# Set secure cookies
+# Set secure cookies  http://localhost/signup
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SITE_ID = 1
@@ -107,6 +108,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "accounts",
+    'corsheaders',
     "rest_framework",
     "rest_framework_swagger",
     "rest_framework_simplejwt.token_blacklist",
@@ -135,7 +137,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    # "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -143,6 +145,24 @@ MIDDLEWARE = [
     # "oauth_demo.middleware.oauth.OAuthMiddleware",
 ]
 
+CORS_ALLOW_CREDENTIALS = True 
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH",
+    "OPTIONS",
+]
+
+
+CORS_ALLOW_HEADERS = [
+    "content-type",
+    "authorization",
+    "x-csrftoken",
+    "x-requested-with",
+]
 
 ROOT_URLCONF = 'BackEnd.urls'
 

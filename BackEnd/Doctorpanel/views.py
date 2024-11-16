@@ -228,13 +228,13 @@ class AdminDoctorPannel(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Pending_doctor.objects.all()
     serializer_class = DoctorApplicationSerializer
-    def get_queryset(self):
+    def get_queryset(self, request ):
         """
         Perform advanced search by combining firstname and lastname into a single field
         and applying similarity search on the combined name and doctorate_code.
         """
-        queryset = super().get_queryset()
-        search_query = self.request.query_params.get('search', None)
+        queryset = Pending_doctor.objects.all()
+        search_query = request.query_params.get('search', None)   #self.
 
         if search_query:
             # Combine firstname and lastname for similarity matching
@@ -252,19 +252,23 @@ class AdminDoctorPannel(viewsets.ModelViewSet):
                 Q(name_similarity__gte=0.3) | Q(code_similarity__gte=0.3)  # Adjust similarity threshold as needed
             ).order_by('-name_similarity', '-code_similarity')
 
-        return queryset
+        
+        doctor_application_serializer = DoctorApplicationSerializer(queryset,many=True )
+        return Response({"data" : doctor_application_serializer.data} , status= status.HTTP_204_NO_CONTENT)
 
 
-    def accept(self , request, id): 
+    def accept(self , request, *args, **kwargs): 
         user = request.user
         if user.role != User.TYPE_ADMIN : 
             return Response({'message': 'Only ADMIN user can access this url.'}, status=status.HTTP_403_FORBIDDEN)
-        doctors = Pending_doctor.objects.filter(id= id)
+        u_id = kwargs.get('pk')
+        doctors = Pending_doctor.objects.filter(id= u_id)
+        
         if not doctors.exists(): 
             return Response({'message': 'There is not pending doctor with this id.'}, status=status.HTTP_400_BAD_REQUEST)
         try : 
             pending_doctor = doctors.first()
-            user = pending_doctor.User
+            user = pending_doctor.user
             psychiatrist = Psychiatrist.objects.create(
                 user = user , 
                 doctorate_code = pending_doctor.doctorate_code 
@@ -276,7 +280,7 @@ class AdminDoctorPannel(viewsets.ModelViewSet):
             email_handler.send_doctor_accept_email(
                 subject=subject,
                 recipient_list=[user.email],
-                user=user
+                user=psychiatrist
             )
 
             return Response(
@@ -290,16 +294,18 @@ class AdminDoctorPannel(viewsets.ModelViewSet):
             )
 
 
-    def deny(self , request, id): 
+    def deny(self , request, *args, **kwargs): 
+        
         user = request.user
         if user.role != User.TYPE_ADMIN : 
             return Response({'message': 'Only ADMIN user can access this url.'}, status=status.HTTP_403_FORBIDDEN)
-        doctors = Pending_doctor.objects.filter(id= id)
+        u_id = kwargs.get('pk')
+        doctors = Pending_doctor.objects.filter(id= u_id)
         if not doctors.exists(): 
             return Response({'message': 'There is not pending doctor with this id.'}, status=status.HTTP_400_BAD_REQUEST)
         try : 
             pending_doctor = doctors.first()
-            user = pending_doctor.User
+            user = pending_doctor.user
 
             if pending_doctor.number_of_application == 0 : 
                 pending_doctor.delete()
@@ -314,7 +320,8 @@ class AdminDoctorPannel(viewsets.ModelViewSet):
                 email_handler.send_doctor_deny_email(
                 subject=subject,
                 recipient_list=[user.email],
-                user=user
+                pending_user=pending_doctor,
+                message=message
             )        
                 pending_doctor.number_of_application -= 1 
                 pending_doctor.save()
