@@ -4,7 +4,6 @@ from accounts.models import User
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError 
-# from telegrambot.models import TelegramAccount
 from django.contrib.postgres.fields import ArrayField
 
 class Psychiatrist(models.Model ) : 
@@ -24,9 +23,7 @@ class Psychiatrist(models.Model ) :
         (TYPE_EDUCATIONAL , 'تحصیلی') , 
         (TYPE_FAMILY , 'خانواده') 
     )
-    # telegramAccount = models.OneToOneField(TelegramAccount , on_delete=models.CASCADE,null=True ,blank=True )
 
-    #  telegram account = models.one to one ( telegram account )
     user = models.ForeignKey(User, on_delete=models.CASCADE , unique=True )
     image = models.ImageField(upload_to='images/doctors/profile_pics', null=True,blank=True )  #, default='images/doctors/profile_pics/default.png')
     field = models.CharField( max_length=255, choices=CHOICES , default=TYPE_USER)

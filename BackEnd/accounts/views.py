@@ -20,6 +20,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from counseling.models import Pationt 
 from rest_framework.permissions import AllowAny
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SignUpView(CreateAPIView):
     serializer_class = SignUpSerializer
@@ -331,7 +334,7 @@ class DoctorApplicationView(GenericAPIView):
        
         if user.role != User.TYPE_PENDING:
             return Response({'message': 'Only pending users can apply as doctors.'}, status=status.HTTP_403_FORBIDDEN)
-
+        logger.info( f"this is user {str(user)}")
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             validated_data = serializer.validated_data
@@ -339,10 +342,13 @@ class DoctorApplicationView(GenericAPIView):
             # Update the user's information with validated data
             user.firstname = validated_data['firstname']
             user.lastname = validated_data['lastname']
-            pending_doctor = Pending_doctor.objects.create(**validated_data)
-            
-            pending_doctor.save()
 
+            pending_doctor = Pending_doctor.objects.create(
+                firstname = validated_data['firstname'] , 
+                lastname = validated_data['lastname'] , 
+                user = user 
+            )
+            pending_doctor.save()
             # Send an email notification to the user
             subject =  '. درخواست شما در حال بررسی است'
             email_handler.send_doctor_application_email(
