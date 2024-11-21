@@ -9,7 +9,6 @@ from django.http import Http404, HttpResponse
 
 class CreateRoom(APIView):
     def post(self, request):
-        print(request.user)
         room = ChatRoom.objects.create(name="test", owner=request.user)
         return Response(room.name, status=status.HTTP_200_OK)
 
