@@ -33,8 +33,6 @@ class UserManager(BaseUserManager):
     def get_queryset(self) -> models.QuerySet:
         return super().get_queryset()
     
-
-
     def create_superuser(self , email ,password=None):   #phone  firstname ,lastname , gender , phone_number, date_of_birth , 
         """
         Creates and saves a superuser with the given email, birthdat
@@ -66,8 +64,6 @@ class UserManager(BaseUserManager):
     def get_by_natural_key(self, email):
         return self.get(email=email)
 
-
-
 class User(AbstractBaseUser):
     GENDER_Male = 'M'
     GENDER_Female = 'F'
@@ -81,15 +77,18 @@ class User(AbstractBaseUser):
     TYPE_USER = "user"
     TYPE_DOCTOR = "doctor"
     TYPE_ADMIN = "admin"
+    TYPE_PENDING = "pending"
 
     CHOICES = (
         (TYPE_USER , "User") , 
         (TYPE_DOCTOR , "Doctor") , 
-        (TYPE_ADMIN , "Admin")
+        (TYPE_ADMIN , "Admin"),
+        (TYPE_PENDING,"Pending"),
     )
 
     firstname = models.CharField(max_length=20 , blank=True, null = True )
     lastname = models.CharField(max_length=30 , blank=True, null = True )
+    
     email = models.EmailField(
         max_length= 255 , 
         unique = True,
@@ -145,4 +144,10 @@ class User(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
-    
+
+class Pending_doctor(models.Model): 
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING , unique=True)
+    doctorate_code = models.CharField(max_length=50, blank=True,unique=True, null=True)
+    firstname = models.CharField(max_length=20 , blank=True, null = True )
+    lastname = models.CharField(max_length=30 , blank=True, null = True )
+    number_of_application = models.IntegerField(default=5 )
