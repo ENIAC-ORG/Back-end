@@ -10,14 +10,6 @@ rm -rf accounts/migrations reservation/migrations telegrambot/migrations Profile
 echo "Migrating the databse...################################################################"
 python manage.py makemigrations accounts counseling Profile reservation TherapyTests Rating Doctorpanel
 
-# python manage.py sqlmigrate accounts 0001 > data.sql
-# python manage.py sqlmigrate telegrambot 0001 >> data.sql
-# python manage.py sqlmigrate counseling 0001 >> data.sql
-# python manage.py sqlmigrate Profile 0001 >> data.sql
-# python manage.py sqlmigrate reservation 0001 >> data.sql
-# python manage.py sqlmigrate TherapyTests 0001 > data.sql
-# python manage.py sqlmigrate Rating 0001 >> data.sql
-# python manage.py sqlmigrate Doctorpanel 0001 >> data.sql
 
 python manage.py migrate
 # python manage.py migrate --noinput
