@@ -1,226 +1,69 @@
-from django.shortcuts import render
-from rest_framework import viewsets, serializers
-from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from utils.therapy_tests import GetMBTIresults ,GlasserResults
 from counseling.models import Pationt ,Psychiatrist
-from .models import TherapyTests , GlasserTest , MedicalRecord , TreatementHistory , MedicalRecordPermission 
+from .models import TherapyTests , GlasserTest , MedicalRecord , MedicalRecordPermission 
 from rest_framework import status 
 import json 
-from datetime import datetime , date , timedelta 
+from datetime import timedelta 
 from django.utils import timezone
-from django.http.request import QueryDict
-from .serializer import MedicalRecordSerializer ,MedicalGetRecord ,TreatementHistorySerializer , ThrapyTestSerializer , GlasserSerializer ,MedicalQueryRecord
+from .serializer import *
 from django.forms.models import model_to_dict
 from fuzzywuzzy import fuzz
-# https://www.youtube.com/watch?v=P2_j1P51dNI&list=RD1mZhwXMl8vc&index=27
+import logging 
+
+logger = logging.getLogger(__name__)
 
 class MedicalRecordView(viewsets.ModelViewSet ) : 
     permission_classes = [IsAuthenticated]
     queryset = MedicalRecord.objects.all()
     http_method_names = ['get','post','retrieve','put','patch' , 'delete']
-    serializer_class = MedicalRecordSerializer
+    
     def create(self , request ) : 
-        user = request.user 
-        pationt = Pationt.objects.filter(user = user ).first()
-        serializer = self.serializer_class(data= request.data)
-        serializer.is_valid(raise_exception=True)
-        validated_data = serializer.stored_validated_data 
-        treatementHistory1 = None 
-        treatementHistory2 = None 
-        treatementHistory3 = None 
-        if 'treatementHistory1' in validated_data.keys() : 
-            treatementHistory1 = validated_data.get('treatementHistory1')
-            tr1 = TreatementHistory.objects.create(
-                end_date = treatementHistory1['end_date'] , 
-                length = treatementHistory1['length'], 
-                is_finished = treatementHistory1['is_finished'] , 
-                reason_to_leave = treatementHistory1['reason_to_leave'] , 
-                approach = treatementHistory1['approach'], 
-                special_drugs = treatementHistory1['special_drugs']
-            )
-            treatementHistory1 = tr1
-        if 'treatementHistory2' in validated_data.keys() : 
-            treatementHistory2 = validated_data.get('treatementHistory2')
-            tr2 = TreatementHistory.objects.create(
-                end_date = treatementHistory2['end_date'] , 
-                length = treatementHistory2['length'] , 
-                is_finished = treatementHistory2['is_finished'], 
-                reason_to_leave = treatementHistory2['reason_to_leave'], 
-                approach = treatementHistory2['approach'], 
-                special_drugs = treatementHistory2['special_drugs']
-            )
-            treatementHistory2 = tr2
+        serializer = MedicalRecordCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            medical_record = serializer.save()
+            oi_dict = model_to_dict(medical_record)
+            oi_serialized = json.dumps(oi_dict)
+            data = {
+                "medical_record" : oi_serialized , 
+                "message" : "record has been successfully created."
+            }
+            logger.debug( "update  this is treatement histories ************** ... "  )
 
-        if 'treatementHistory3' in validated_data.keys() : 
-            treatementHistory3 = validated_data.get("treatementHistory3")
-            tr3 = TreatementHistory.objects.create(
-                end_date = treatementHistory3['end_date'], 
-                length = treatementHistory3['length'] , 
-                is_finished = treatementHistory3['is_finished'], 
-                reason_to_leave = treatementHistory3['reason_to_leave'], 
-                approach = treatementHistory3['approach'], 
-                special_drugs = treatementHistory3['special_drugs']
-            )
-            treatementHistory3 = tr3
+            return Response(data , status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        medical_record = MedicalRecord.objects.create(
-            pationt = pationt , 
-            child_num = validated_data.get('child_num') , 
-            family_history= validated_data.get('family_history')  , 
-            nationalID = validated_data.get('nationalID') , 
-            treatementHistory1 = treatementHistory1 , 
-            treatementHistory2 = treatementHistory2 , 
-            treatementHistory3 = treatementHistory3
-        )
-    
-        oi_dict = model_to_dict(medical_record)
-        oi_serialized = json.dumps(oi_dict)
-        data = {
-            "medical_record" : oi_serialized , 
-            "message" : "record has been successfully created."
-        }
-        return Response(data , status=status.HTTP_201_CREATED)
-    
-
-    def update(self , request ) : 
-        user = request.user 
-        pationt = Pationt.objects.filter(user = user ).first()
-        serializer = self.serializer_class(data= request.data )
-        serializer.is_valid(raise_exception=True)
-        validated_data = serializer.stored_validated_data 
-        treatementHistory1 = None 
-        treatementHistory2 = None 
-        treatementHistory3 = None 
-        old_record = MedicalRecord.objects.filter(pationt = pationt )
-
-        if not old_record.exists() : 
-            return Response({"message" : "this patient has not create a record yet."} , status=status.HTTP_400_BAD_REQUEST )
+    def update(self, request):
+        user = request.user
+        pationt = Pationt.objects.filter(user=user).first()
         
-        old_record = old_record.first()
+        if not pationt:
+            return Response({"detail": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
+        medical_record = get_object_or_404(MedicalRecord, pationt=pationt)
 
-        if 'treatementHistory1' in validated_data.keys() : 
-            treatementHistory1 = validated_data.get('treatementHistory1')
-            if not old_record.treatementHistory1 : 
-                tr1 = TreatementHistory.objects.create(
-                    end_date = treatementHistory1['end_date'] , 
-                    length = treatementHistory1['length'], 
-                    is_finished = treatementHistory1['is_finished'] , 
-                    reason_to_leave = treatementHistory1['reason_to_leave'] , 
-                    approach = treatementHistory1['approach'], 
-                    special_drugs = treatementHistory1['special_drugs']
-                )
-                old_record.treatementHistory1 = tr1
-            else : 
-                old_record.treatementHistory1.end_date = treatementHistory1['end_date'] 
-                old_record.treatementHistory1.length = treatementHistory1['length']
-                old_record.treatementHistory1.is_finished = treatementHistory1['is_finished'] 
-                old_record.treatementHistory1.reason_to_leave = treatementHistory1['reason_to_leave'] 
-                old_record.treatementHistory1.approach = treatementHistory1['approach']
-                old_record.treatementHistory1.special_drugs = treatementHistory1['special_drugs']
-            #     tr1 = old_record.treatementHistory1
-            # treatementHistory1 = tr1
-            old_record.treatementHistory1.save()
-
-        if 'treatementHistory2' in validated_data.keys() : 
-            treatementHistory2 = validated_data.get('treatementHistory2')
-            if not old_record.treatementHistory2 : 
-                tr2 = TreatementHistory.objects.create(
-                    end_date = treatementHistory2['end_date'] , 
-                    length = treatementHistory2['length'], 
-                    is_finished = treatementHistory2['is_finished'] , 
-                    reason_to_leave = treatementHistory2['reason_to_leave'] , 
-                    approach = treatementHistory2['approach'], 
-                    special_drugs = treatementHistory2['special_drugs']
-                )
-                old_record.treatementHistory2 = tr2 
-            else : 
-                old_record.treatementHistory2.end_date = treatementHistory2['end_date']
-                old_record.treatementHistory2.length = treatementHistory2['length']
-                old_record.treatementHistory2.is_finished = treatementHistory2['is_finished'] 
-                old_record.treatementHistory2.reason_to_leave = treatementHistory2['reason_to_leave'] 
-                old_record.treatementHistory2.approach = treatementHistory2['approach']
-                old_record.treatementHistory2.special_drugs = treatementHistory2['special_drugs']
-            #     tr2 = old_record.treatementHistory2
-
-            old_record.treatementHistory2.save()
-            # treatementHistory2 = tr2
-
-        if 'treatementHistory3' in validated_data.keys() : 
-            treatementHistory3 = validated_data.get('treatementHistory3')
-            if not old_record.treatementHistory3 : 
-                tr3 = TreatementHistory.objects.create(
-                    end_date = treatementHistory2['end_date'] , 
-                    length = treatementHistory2['length'], 
-                    is_finished = treatementHistory2['is_finished'] , 
-                    reason_to_leave = treatementHistory2['reason_to_leave'] , 
-                    approach = treatementHistory2['approach'], 
-                    special_drugs = treatementHistory2['special_drugs']
-                )
-                old_record.treatementHistory3 = tr3 
-            else : 
-                old_record.treatementHistory3.end_date = treatementHistory3['end_date'] 
-                old_record.treatementHistory3.length = treatementHistory3['length']
-                old_record.treatementHistory3.is_finished = treatementHistory3['is_finished']
-                old_record.treatementHistory3.reason_to_leave = treatementHistory3['reason_to_leave'] 
-                old_record.treatementHistory3.approach = treatementHistory3['approach']
-                old_record.treatementHistory3.special_drugs = treatementHistory3['special_drugs']
-            old_record.treatementHistory3.save()
-
-        old_record.pationt = pationt 
-        old_record.child_num = validated_data.get('child_num') 
-        old_record.family_history= validated_data.get('family_history')  
-        old_record.nationalID = validated_data.get('nationalID') 
-        old_record.save()
-        
-        oi_dict = model_to_dict(old_record)
-        oi_serialized = json.dumps(oi_dict)
-        data = {
-            "medical_record" : oi_serialized , 
-            "message" : "record has been successfully updated."
-        }
-
-        return Response(data , status=status.HTTP_200_OK )
+        serializer = MedicalRecordCreateSerializer(instance=medical_record, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def retrieve_list_all( self , request ) : 
         user = request.user
         if user.role == 'user' : 
             return Response({"message" : "ordinary user can not access this Information."} , status =status.HTTP_400_BAD_REQUEST )
-        doctor = Psychiatrist.objects.filter( user = user).first()
+        doctor = Psychiatrist.objects.filter( user = user)
+        if not doctor.exists(): 
+            return Response({"message" : "doctor does not exist."} , status =status.HTTP_400_BAD_REQUEST )
+        doctor = doctor.first()
         doctor_patients = MedicalRecordPermission.objects.filter(psychiatrist = doctor ).values_list('pationt', flat=True)
         if doctor_patients.exists() : 
             ress = MedicalRecord.objects.filter(pationt__in=doctor_patients)
-            data_list = []
-            for item in ress:
-                datas = {
-                    'child_num': item.child_num,
-                    'family_history': item.family_history,
-                    'nationalID': item.nationalID,
-                    'id': item.id,
-                    'name': item.name,
-                    'age': item.age,
-                    'gender': item.gender
-                }
-                if item.treatementHistory1 != None : 
-                    datas['treatementHistory1']= TreatementHistorySerializer(item.treatementHistory1).data
-                if item.treatementHistory2 != None : 
-                    datas['treatementHistory2'] = TreatementHistorySerializer(item.treatementHistory2).data
-                if item.treatementHistory3 != None : 
-                    datas['treatementHistory3']= TreatementHistorySerializer(item.treatementHistory3).data
-                if item.therapyTests != None :   
-                    v = ThrapyTestSerializer(item.therapyTests).data
-                    v['glasserTest'] = GlasserSerializer( item.therapyTests.glasserTest ).data
-                    datas['therapyTests'] = v 
-                data_list.append(datas)
-            serializer = MedicalGetRecord(data=data_list,many=True)
-            if serializer.is_valid():
-                return Response({"records": serializer.validated_data}, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer = MedicalRecordGetSerializer(instance=ress , many=True)
+            return Response({"records": serializer.data}, status=status.HTTP_200_OK)
         else : 
             return Response({"message" : "you do not have permission."} , status=status.HTTP_200_OK )
-        
 
     def retrieve_list_last_30_day( self , request ) : 
         user = request.user
@@ -232,74 +75,28 @@ class MedicalRecordView(viewsets.ModelViewSet ) :
         doctor_patients = MedicalRecordPermission.objects.filter(psychiatrist = doctor, created_date__range=[str(start) , str(end)] ).order_by('-created_date').values_list('pationt', flat=True)
         if doctor_patients.exists() : 
             ress = MedicalRecord.objects.filter(pationt__in=doctor_patients)
-            data_list = []
-            for item in ress:
-                datas = {
-                    'child_num': item.child_num,
-                    'family_history': item.family_history,
-                    'nationalID': item.nationalID,
-                    'id': item.id,
-                    'name': item.name,
-                    'age': item.age,
-                    'gender': item.gender
-                }
-                if item.treatementHistory1 != None : 
-                    datas['treatementHistory1']= TreatementHistorySerializer(item.treatementHistory1).data
-                if item.treatementHistory2 != None : 
-                    datas['treatementHistory2'] = TreatementHistorySerializer(item.treatementHistory2).data
-                if item.treatementHistory3 != None : 
-                    datas['treatementHistory3']= TreatementHistorySerializer(item.treatementHistory3).data
-                if item.therapyTests != None :   
-                    v = ThrapyTestSerializer(item.therapyTests).data
-                    v['glasserTest'] = GlasserSerializer( item.therapyTests.glasserTest ).data
-                    datas['therapyTests'] = v 
-                # print("datasssss " , datas )
-                data_list.append(datas)
-            serializer = MedicalGetRecord(data=data_list,many=True)
-            if serializer.is_valid():
-                return Response({"records": serializer.validated_data}, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer = MedicalRecordGetSerializer(instance=ress , many=True)
+            return Response({"records": serializer.data}, status=status.HTTP_200_OK)
         else : 
             return Response({"message" : "you do not have permission."} , status=status.HTTP_200_OK )
         
     def get_record_by_id(self , request , id ) : 
-        # we consider id as patient id 
         user = request.user
-        if user.role == 'user' : 
-            return Response({"message" : "ordinary user can not access this Information."} , status =status.HTTP_400_BAD_REQUEST )
-        # p = Pationt.objects.filter( id = id  ).first()
-        ress = MedicalRecord.objects.filter( pationt = id )
-        if not ress.exists() : 
-            return Response({"message" : "there is no record with this id."} , status =status.HTTP_400_BAD_REQUEST )
+        if user.role == 'user':
+            return Response(
+                {"message": "Ordinary user cannot access this information."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        ress = MedicalRecord.objects.filter(pationt=id)
+        if not ress.exists():
+            return Response(
+                {"message": "There is no record with this ID."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         item = ress.first()
-        datas = {
-            'child_num': item.child_num,
-            'family_history': item.family_history,
-            'nationalID': item.nationalID,
-            'id': item.id,
-            'name': item.name,
-            'age': item.age,
-            'gender': item.gender
-        }
-
-        if item.treatementHistory1 != None : 
-            datas['treatementHistory1']= TreatementHistorySerializer(item.treatementHistory1).data
-        if item.treatementHistory2 != None : 
-            datas['treatementHistory2'] = TreatementHistorySerializer(item.treatementHistory2).data
-        if item.treatementHistory3 != None : 
-            datas['treatementHistory3']= TreatementHistorySerializer(item.treatementHistory3).data
-        if item.therapyTests != None :   
-            v = ThrapyTestSerializer(item.therapyTests).data
-            v['glasserTest'] = GlasserSerializer( item.therapyTests.glasserTest ).data
-            datas['therapyTests'] = v 
+        serializer = MedicalRecordGetSerializer(instance=item)
+        return Response(serializer.data, status=status.HTTP_200_OK)
         
-        serializer = MedicalGetRecord(data= datas )
-        if serializer.is_valid():
-            return Response(serializer.validated_data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
     def query_on_records(self , request ) : 
         query = request.data.get('name')
@@ -327,7 +124,6 @@ class MedicalRecordView(viewsets.ModelViewSet ) :
                 
                 for obj , score in scores : 
                     if score> 45 : 
-                        print( "sdflsfjdslfjdslfj " , obj.id )
                         datas = {
                             'id': obj.id,
                             'nationalID': obj.nationalID,
@@ -364,40 +160,13 @@ class MedicalRecordView(viewsets.ModelViewSet ) :
         start = end - timedelta(days=360)
         if user.role == 'user' : 
             return Response({"message" : "ordinary user can not access this Information."} , status = status.HTTP_400_BAD_REQUEST)
-    
         doctor = Psychiatrist.objects.filter( user = user).first()
-        doctor_patients = MedicalRecordPermission.objects.filter(psychiatrist = doctor, created_date__range=[str(start) , str(end)] ).order_by('-created_date').values_list('pationt', flat=True)
-
+        doctor_patients = MedicalRecordPermission.objects.filter(psychiatrist = doctor, 
+                                                                created_date__range=[str(start) , str(end)] ).order_by('-created_date').values_list('pationt', flat=True)
         if doctor_patients.exists() : 
             ress = MedicalRecord.objects.filter(pationt__in=doctor_patients)
-            data_list = []
-            for item in ress:
-                datas = {
-                    'child_num': item.child_num,
-                    'family_history': item.family_history,
-                    'nationalID': item.nationalID,
-                    'id': item.id,
-                    'name': item.name,
-                    'age': item.age,
-                    'gender': item.gender
-                }
-                if item.treatementHistory1 != None : 
-                    datas['treatementHistory1']= TreatementHistorySerializer(item.treatementHistory1).data
-                if item.treatementHistory2 != None : 
-                    datas['treatementHistory2'] = TreatementHistorySerializer(item.treatementHistory2).data
-                if item.treatementHistory3 != None : 
-                    datas['treatementHistory3']= TreatementHistorySerializer(item.treatementHistory3).data
-                if item.therapyTests != None :   
-                    v = ThrapyTestSerializer(item.therapyTests).data
-                    v['glasserTest'] = GlasserSerializer( item.therapyTests.glasserTest ).data
-                    datas['therapyTests'] = v 
-                # print("datasssss " , datas )
-                data_list.append(datas)
-            serializer = MedicalGetRecord(data=data_list,many=True)
-            if serializer.is_valid():
-                return Response({"records": serializer.validated_data}, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer = MedicalRecordGetSerializer(instance=ress , many=True)
+            return Response({"records": serializer.data}, status=status.HTTP_200_OK)
         else : 
             return Response({"message" : "you do not have permission."} , status=status.HTTP_200_OK )
     
@@ -413,35 +182,15 @@ class MedicalRecordView(viewsets.ModelViewSet ) :
         user = request.user 
         pationt = Pationt.objects.filter(user = user).first()
         records = self.queryset.filter( pationt = pationt )
-        if not records.exists() : 
-            return Response({"message" : "there is no any records for this user."} , status=status.HTTP_400_BAD_REQUEST )
+        if not records.exists():
+            return Response(
+                {"message": "There is no record for this user."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         item  = records.first() 
-        datas = {
-            'child_num': item.child_num,
-            'family_history': item.family_history,
-            'nationalID': item.nationalID,
-            'id': item.id,
-            'name': item.name,
-            'age': item.age,
-            'gender': item.gender
-        }
-        if item.treatementHistory1 != None : 
-            datas['treatementHistory1']= TreatementHistorySerializer(item.treatementHistory1).data
-        if item.treatementHistory2 != None : 
-            datas['treatementHistory2'] = TreatementHistorySerializer(item.treatementHistory2).data
-        if item.treatementHistory3 != None : 
-            datas['treatementHistory3']= TreatementHistorySerializer(item.treatementHistory3).data
-        if item.therapyTests != None :   
-            v = ThrapyTestSerializer(item.therapyTests).data
-            v['glasserTest'] = GlasserSerializer( item.therapyTests.glasserTest ).data
-            datas['therapyTests'] = v 
-        
-        serializer = MedicalGetRecord(data= datas )
-        if serializer.is_valid():
-            return Response(serializer.validated_data , status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+       
+        serializer = MedicalRecordGetSerializer(instance=item)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def delete(self , request ,id ) : 
         user = request.user 
@@ -558,8 +307,7 @@ class GetMBTItest(viewsets.ModelViewSet) :
                 "result" : mbti["final"] 
             }
             return Response( data= data , status=status.HTTP_200_OK )
-    
-
+        
     def retrieve(self, request, *args, **kwargs):
         user = request.user
         pationt = Pationt.objects.filter(user = user ).first()

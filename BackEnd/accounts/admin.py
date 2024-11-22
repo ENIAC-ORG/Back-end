@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.exceptions import ValidationError
 from django import forms
-from .models import User
+from .models import User , Pending_doctor
 
 
 
@@ -66,4 +66,5 @@ class UserAdmin(BaseUserAdmin):
     ordering = ('email',)
     filter_horizontal = ()
 
-admin.site.register(User, UserAdmin)
+admin.site.register(User, UserAdmin )
+admin.site.register(Pending_doctor)

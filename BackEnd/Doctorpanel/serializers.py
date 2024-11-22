@@ -11,7 +11,6 @@ class DoctorPanelSerializer(serializers.Serializer):
     def validate(self, attrs):
         return super().validate(attrs) 
     
-
 class ReservationListSerializer(serializers.ModelSerializer):
     patient_full_name = serializers.SerializerMethodField()
     class Meta:
@@ -34,4 +33,6 @@ class FreeTimeSerializer(serializers.ModelSerializer):
         fields = ['month','day', 'time']
 
     def validate(self, attrs):
-        return super().validate(attrs)
+        if not attrs.get('month') or not attrs.get('day') or not attrs.get('time'):
+            raise serializers.ValidationError('All fields are required.')
+        return attrs

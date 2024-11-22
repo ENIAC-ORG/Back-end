@@ -16,17 +16,22 @@ from datetime import datetime, timedelta
 from .models import FreeTime
 from rest_framework import generics, status
 from rest_framework.status import HTTP_404_NOT_FOUND
-from datetime import datetime, time
+from datetime import datetime
 from rest_framework.permissions import IsAuthenticated
+from accounts.serializers import DoctorApplicationSerializer
+from rest_framework import viewsets
+from django.db.models import Q, Value, CharField
+from django.db.models.functions import Concat
+from django.contrib.postgres.search import TrigramSimilarity  # For PostgreSQL databases
+from accounts.models import Pending_doctor , User
+import utils.email as email_handler 
+
 
 class DoctorPanelView(viewsets.ModelViewSet):
     serializer_class=FreeTimeSerializer
     permission_classes = [IsAuthenticated]
     queryset = FreeTime.objects.all()
     def get_rating(self, request):
-        # serializer = DoctorPanelSerializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-        # psychiatrist_id=serializer.validated_data['psychiatrist_id']
         try:
             psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
         except Psychiatrist.DoesNotExist:
@@ -52,10 +57,6 @@ class DoctorPanelView(viewsets.ModelViewSet):
         return Response(response_data)
     
     def ThisWeekResevations(self,request):
-        #for each date it shows the rervations from saturday to friday 
-        # serializer = DoctorPanelSerializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-        # psychiatrist_id=request.data.get('psychiatrist_id')
         try:
             psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
         except Psychiatrist.DoesNotExist:
@@ -73,10 +74,6 @@ class DoctorPanelView(viewsets.ModelViewSet):
 
 
     def NextWeekReservations(self, request):
-        #Reservation starting today to 7 days later 
-        # serializer = DoctorPanelSerializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-        # psychiatrist_id = serializer.validated_data['psychiatrist_id']
         try:
             psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
         except Psychiatrist.DoesNotExist:
@@ -96,99 +93,20 @@ class DoctorPanelView(viewsets.ModelViewSet):
         if serializer.is_valid():
             month = serializer.validated_data['month']
             day = serializer.validated_data['day']
-            times = serializer.validated_data['time']
-
-            if not times:
-                return Response({'error': 'Times are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            times_list = list(set(time.strip() for time in times.split(',')))
-
-            month_index = next(index for index, choice in enumerate(FreeTime.MONTH_CHOICES) if choice[0] == month) + 1
-
-            year = datetime.now().year
-            start_date = datetime(year, month_index, 1)
-            end_date = start_date + timedelta(days=calendar.monthrange(year, month_index)[1] - 1)
-
+            times = serializer.validated_data['time']            
             try:
                 psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
             except Psychiatrist.DoesNotExist:
                 return Response({'error': 'Psychiatrist not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-            persian_to_weekday = {
-                'شنبه': 5,    # Saturday
-                'یکشنبه': 6,  # Sunday
-                'دوشنبه': 0,  # Monday
-                'سه‌شنبه': 1, # Tuesday
-                'چهارشنبه': 2,# Wednesday
-                'پنج‌شنبه': 3,# Thursday
-                'جمعه': 4     # Friday
-            }
+            times_list = list(set(time.strip() for time in times.split(',')))
 
-            day_index = persian_to_weekday.get(day, None)
-            if day_index is None:
-                return Response({'error': 'Invalid day name.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            date = start_date
-            while date.weekday() != day_index:
-                date += timedelta(days=1)
-
-            created_free_times = []
-            while date <= end_date:
-                for time in times_list:
-                    conflicts = FreeTime.objects.filter(
-                        psychiatrist=psychiatrist,
-                        month=month,
-                        day=day,
-                        date=date,
-                        time=time
-                    ).exists()
-                    if conflicts:
-                        return Response({'error': f'Free time already exists for {day} at {time}.'}, status=status.HTTP_208_ALREADY_REPORTED)
-                    else:
-                        free_time = FreeTime.objects.create(
-                            psychiatrist=psychiatrist,
-                            month=month,
-                            day=day,
-                            date=date,
-                            time=time
-                        )
-                        free_time.save()
-                        created_free_times.append(free_time)
-
-                date += timedelta(days=7)
+            created_free_times=self._create_free_times(month,day,times_list,psychiatrist)
 
             response_data = FreeTimeSerializer(created_free_times, many=True).data
             return Response(response_data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-
-    # def UpdateFreeTime(self, request):
-    #     serializer = FreeTimeSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         month = serializer.validated_data['month']
-    #         day = serializer.validated_data['day']
-    #         times = serializer.validated_data['time']
-
-    #         if not times:
-    #             return Response({'error': 'Times are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #         times_list = list(set(time.strip() for time in times.split(',')))
-    #         try:
-    #             psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
-    #         except Psychiatrist.DoesNotExist:
-    #             return Response({'error': 'Psychiatrist not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-    #         existing_free_times = FreeTime.objects.filter(
-    #             psychiatrist=psychiatrist, month=month, day=day)
-
-                            
-            
-
-    #         return Response(response_data, status=status.HTTP_200_OK)
-    #     else:
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
         
     def DeleteFreeTime(self, request):
         serializer = FreeTimeSerializer(data=request.data)
@@ -197,8 +115,6 @@ class DoctorPanelView(viewsets.ModelViewSet):
             day = serializer.validated_data['day']
             times = serializer.validated_data['time']
 
-            if not times:
-                return Response({'error': 'Times are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
             times_list = list(set(time.strip() for time in times.split(',')))
 
@@ -236,24 +152,188 @@ class DoctorPanelView(viewsets.ModelViewSet):
                 }, status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def UpdateFreeTime(self, request):
+        serializer = FreeTimeSerializer(data=request.data)
+        if serializer.is_valid():
+            month = serializer.validated_data['month']
+            day = serializer.validated_data['day']
+            times = serializer.validated_data['time']
+
+            times_list = list(set(time.strip() for time in times.split(',')))
+
+            try:
+                psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
+            except Psychiatrist.DoesNotExist:
+                return Response({'error': 'Psychiatrist not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Delete all free times for the specified month and day
+            FreeTime.objects.filter(
+                psychiatrist=psychiatrist,
+                month=month,
+                day=day
+            ).delete()
+
+            # Create new free times
+            created_free_times=self._create_free_times(month,day,times_list,psychiatrist)
+
+            response_data = FreeTimeSerializer(created_free_times, many=True).data
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def _create_free_times(self,month,day,times,psychiatrist):
+        month_index = next(index for index, choice in enumerate(FreeTime.MONTH_CHOICES) if choice[0] == month) + 1
+        year = datetime.now().year
+        start_date = datetime(year, month_index, 1)
+        end_date = start_date + timedelta(days=calendar.monthrange(year, month_index)[1] - 1)
+
+        persian_to_weekday = {
+            'شنبه': 5,    # Saturday
+            'یکشنبه': 6,  # Sunday
+            'دوشنبه': 0,  # Monday
+            'سه‌شنبه': 1, # Tuesday
+            'چهارشنبه': 2,# Wednesday
+            'پنج‌شنبه': 3,# Thursday
+            'جمعه': 4     # Friday
+        }
+
+        day_index = persian_to_weekday.get(day, None)
+        if day_index is None:
+            return Response({'error': 'Invalid day name.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        date = start_date
+        while date.weekday() != day_index:
+            date += timedelta(days=1)
+
+        created_free_times = []
+        while date <= end_date:
+            for time in times :
+                free_time = FreeTime.objects.create(
+                    psychiatrist=psychiatrist,
+                    month=month,
+                    day=day,
+                    date=date,
+                    time=time
+                )
+                free_time.save()
+                created_free_times.append(free_time)
+
+            date += timedelta(days=7)
+        return created_free_times
+
+
+
+class AdminDoctorPannel(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = Pending_doctor.objects.all()
+    serializer_class = DoctorApplicationSerializer
+    def get_queryset(self, request ):
+        """
+        Perform advanced search by combining firstname and lastname into a single field
+        and applying similarity search on the combined name and doctorate_code.
+        """
+        queryset = Pending_doctor.objects.all()
+        search_query = request.query_params.get('search', None)   #self.
+
+        if search_query:
+            # Combine firstname and lastname for similarity matching
+            queryset = queryset.annotate(
+                full_name=Concat('firstname', Value(' '), 'lastname', output_field=CharField())
+            )
+            # Apply similarity filtering
+            queryset = queryset.filter(
+                Q(full_name__icontains=search_query) |
+                Q(doctorate_code__icontains=search_query)
+            ).annotate(
+                name_similarity=TrigramSimilarity('full_name', search_query),
+                code_similarity=TrigramSimilarity('doctorate_code', search_query)
+            ).filter(
+                Q(name_similarity__gte=0.3) | Q(code_similarity__gte=0.3)  # Adjust similarity threshold as needed
+            ).order_by('-name_similarity', '-code_similarity')
+
         
-    # def UpdateFreeTime(self, request):
-    #     delete_response = self.DeleteFreeTime(request)
-    #     if delete_response.status_code != status.HTTP_204_NO_CONTENT:
-    #         return delete_response
-
-    #     post_response = self.PostFreeTime(request)
-    #     if post_response.status_code != status.HTTP_201_CREATED:
-    #         return post_response
-
-    #     return Response({'success': 'Free times updated successfully.'}, status=status.HTTP_200_OK)
+        doctor_application_serializer = DoctorApplicationSerializer(queryset,many=True )
+        return Response({"data" : doctor_application_serializer.data} , status= status.HTTP_204_NO_CONTENT)
 
 
-
+    def accept(self , request, *args, **kwargs): 
+        user = request.user
+        if user.role != User.TYPE_ADMIN : 
+            return Response({'message': 'Only ADMIN user can access this url.'}, status=status.HTTP_403_FORBIDDEN)
+        u_id = kwargs.get('pk')
+        doctors = Pending_doctor.objects.filter(id= u_id)
         
+        if not doctors.exists(): 
+            return Response({'message': 'There is not pending doctor with this id.'}, status=status.HTTP_400_BAD_REQUEST)
+        try : 
+            pending_doctor = doctors.first()
+            user = pending_doctor.user
+            psychiatrist = Psychiatrist.objects.create(
+                user = user , 
+                doctorate_code = pending_doctor.doctorate_code 
+            )
+            psychiatrist.save()
+            pending_doctor.delete()
+            # send email to doctor say the reason :)  
+            subject =  'درخواست شما تایید شد . '
+            email_handler.send_doctor_accept_email(
+                subject=subject,
+                recipient_list=[user.email],
+                user=psychiatrist
+            )
+
+            return Response(
+                {'message': 'Psychiatrist successfully created and pending doctor removed.'},
+            status=status.HTTP_200_OK )
+        
+        except Exception as e:
+            return Response(
+                {'message': f'An error occurred: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
+    def deny(self , request, *args, **kwargs): 
+        
+        user = request.user
+        if user.role != User.TYPE_ADMIN : 
+            return Response({'message': 'Only ADMIN user can access this url.'}, status=status.HTTP_403_FORBIDDEN)
+        u_id = kwargs.get('pk')
+        doctors = Pending_doctor.objects.filter(id= u_id)
+        if not doctors.exists(): 
+            return Response({'message': 'There is not pending doctor with this id.'}, status=status.HTTP_400_BAD_REQUEST)
+        try : 
+            pending_doctor = doctors.first()
+            user = pending_doctor.user
 
+            if pending_doctor.number_of_application == 0 : 
+                pending_doctor.delete()
+                user.delete()
+                return Response(
+                {'message': 'You have reached the number of allowed applicaton.you can not request an other time.'},
+            status=status.HTTP_400_BAD_REQUEST )
+            else : 
+                message = request.data.get('message')
+                # send email to pending use and say the reason of deny . 
+                subject =  'درخواست شما رد شد . '
+                email_handler.send_doctor_deny_email(
+                subject=subject,
+                recipient_list=[user.email],
+                pending_user=pending_doctor,
+                message=message
+            )        
+                pending_doctor.number_of_application -= 1 
+                pending_doctor.save()
+                return Response(
+                    {'message': 'Ther is problem in the application of pending doctor.'},
+                status=status.HTTP_204_NO_CONTENT)
+        
+        except Exception as e:
+            return Response(
+                {'message': f'An error occurred: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
             
 
         
