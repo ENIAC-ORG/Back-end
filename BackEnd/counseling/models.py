@@ -25,6 +25,7 @@ class Psychiatrist(models.Model ) :
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE , unique=True )
+    image = models.ImageField(upload_to='images/doctors/profile_pics', null=True,blank=True )  #, default='images/doctors/profile_pics/default.png')
     field = models.CharField( max_length=255, choices=CHOICES , default=TYPE_USER,null=True, blank= True)
     clinic_address = models.TextField(null=True, blank=True)  # Clinic address, allowing multiline text
     clinic_telephone_number = models.CharField(max_length=15, null=True, blank=True)
