@@ -26,8 +26,6 @@ class MedicalRecordView(viewsets.ModelViewSet ) :
         pationt = Pationt.objects.filter(user=user).first()
         if not pationt:
             return Response({"error": "Patient not found for the current user."}, status=status.HTTP_404_NOT_FOUND)
-        # data = {}
-        # data = request.data.copy()
         request.data['pationt'] = pationt.id  
         serializer = MedicalRecordCreateSerializer(data=request.data)
         if serializer.is_valid():
