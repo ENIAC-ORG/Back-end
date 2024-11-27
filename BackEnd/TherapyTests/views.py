@@ -21,9 +21,17 @@ class MedicalRecordView(viewsets.ModelViewSet ) :
     queryset = MedicalRecord.objects.all()
     http_method_names = ['get','post','retrieve','put','patch' , 'delete']
     
-    def create(self , request ) : 
+    def create(self , request ) :
+        user = request.user
+        pationt = Pationt.objects.filter(user=user).first()
+        if not pationt:
+            return Response({"error": "Patient not found for the current user."}, status=status.HTTP_404_NOT_FOUND)
+        # data = {}
+        # data = request.data.copy()
+        request.data['pationt'] = pationt.id  
         serializer = MedicalRecordCreateSerializer(data=request.data)
         if serializer.is_valid():
+            logger.warning("this is request and here : {}".format(request.data)  )
             medical_record = serializer.save()
             oi_dict = model_to_dict(medical_record)
             oi_serialized = json.dumps(oi_dict)

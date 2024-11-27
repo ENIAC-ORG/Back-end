@@ -51,6 +51,10 @@ class MedicalRecordCreateSerializer(serializers.ModelSerializer):
             'id', 'pationt', 'child_num', 'therapyTests', 'name', 'created_at', 
             'age', 'gender', 'family_history', 'nationalID', 'treatment_histories'
         ]
+        
+        extra_kwargs = {
+            'pationt': {'required': False},  
+        }
 
     def create(self, validated_data):
         treatment_histories_data = validated_data.pop('treatment_histories')
