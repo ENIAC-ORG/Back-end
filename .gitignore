@@ -124,6 +124,9 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+
+.env
+
 .venv
 env/
 venv/
@@ -184,6 +187,15 @@ pyrightconfig.json
 pyvenv.cfg
 pip-selfcheck.json
 
+<<<<<<< HEAD
+**/migrations/
+<<<<<<<< HEAD:.gitignore
+**/.vscode
+========
+
+>>>>>>>> dev:BackEnd/.gitignore
+# End of https://www.toptal.com/developers/gitignore/api/python,venv
+=======
 # End of https://www.toptal.com/developers/gitignore/api/python,venv
 
 
@@ -210,3 +222,4 @@ pip-selfcheck.json
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode
+
