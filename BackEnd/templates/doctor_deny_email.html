@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            direction: rtl;
+            font-family: 'Tahoma', sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333333;
+        }
+        .content {
+            font-size: 18px;
+            color: #555555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            درخواست شما رد شد
+        </div>
+        <div class="content">
+            <p>با سلام خدمت خانم / آقای {{ firstname }} {{ lastname }},</p>
+            <p>با کد نظام پزشکی/کد نظام روانشناسی: {{ doctorate_code }}</p>
+            <p>تعداد دفعات باقی مانده برای درخواست( تا 5 دفعه امکان درخواست برا ی هر کاربر مجاز است): {{ number_of_application }}</p>
+            <p>دلیل رد شدن درخواست شما : {{ message }}</p>
+            <p>متأسفانه درخواست شما برای ثبت‌ نام به عنوان پزشک توسط مدیر رد شده است.</p>
+            <p>برای اطلاعات بیشتر می‌توانید با تیم پشتیبانی تماس بگیرید.</p>
+            <p>با احترام،</p>
+            <p>تیم مدیریت</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from accounts.models import User
+from accounts.models import User , Pending_doctor
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import password_validation
 from django.core import exceptions as exception
@@ -22,22 +22,20 @@ class CompleteInfoSerializer(serializers.ModelSerializer) :
         fields = ['firstname' , 'lastname' , 'phone_number' , 'date_of_birth','gender' ]
     
     def validate(self, attrs):
-        return super().validate(attrs)    
-   
-
+        return super().validate(attrs)       
 
 class SignUpSerializer(serializers.ModelSerializer):
+
     password2 = serializers.CharField(style={"input_type": "password"}, write_only=True)
     password1 = serializers.CharField(
         style={'input_type': 'password'},
         validators=[password_validation.validate_password],
         write_only=True
     )
-
+    is_doctor = serializers.BooleanField(default=False)
     class Meta:
         model = User
-        fields = ('email','password1', 'password2' ) 
-                     
+        fields = ('email','password1', 'password2','is_doctor' )                  
         extra_kwargs = {
             'password1': {'write_only': True},
             'password2': {'write_only': True},
@@ -168,4 +166,16 @@ class LoginSerializer(serializers.Serializer):
         if not user_exists:
             raise serializers.ValidationError( { "message" : msg} )
         return str.lower(value)
+    
+    
+class DoctorApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        id = serializers.IntegerField()
+        model = Pending_doctor
+        fields = ['id', 'firstname', 'lastname', 'doctorate_code']
+
+    def validate(self, attrs):
+        if not attrs.get('firstname') or not attrs.get('lastname') or not attrs.get('doctorate_code'):
+            raise serializers.ValidationError('All fields are required.')
+        return attrs
     

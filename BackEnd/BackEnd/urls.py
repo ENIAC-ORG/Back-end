@@ -22,6 +22,7 @@ from drf_yasg import openapi
 from django.urls import re_path as url
 from django.views.static import serve
 from django.conf import settings
+from django.conf.urls.static import static
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -48,9 +49,14 @@ urlpatterns = [
     path('TherapyTests/' , include("TherapyTests.urls")),
     path('Rating/',include("Rating.urls")),
     path('DoctorPanel/',include("Doctorpanel.urls")),
+    path('chat/', include("chat.urls")),
 ]
 
 if settings.DEBUG:
     urlpatterns += [
     url(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
+    
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    

@@ -4,11 +4,7 @@ from accounts.models import User
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError 
-# from telegrambot.models import TelegramAccount
 from django.contrib.postgres.fields import ArrayField
-
-# from TherapyTests.models import TherapyTests
-import datetime
 
 class Psychiatrist(models.Model ) : 
     TYPE_INDIVIDUAL = "فردی"
@@ -27,12 +23,13 @@ class Psychiatrist(models.Model ) :
         (TYPE_EDUCATIONAL , 'تحصیلی') , 
         (TYPE_FAMILY , 'خانواده') 
     )
-    # telegramAccount = models.OneToOneField(TelegramAccount , on_delete=models.CASCADE,null=True ,blank=True )
 
-    #  telegram account = models.one to one ( telegram account )
     user = models.ForeignKey(User, on_delete=models.CASCADE , unique=True )
     image = models.ImageField(upload_to='images/doctors/profile_pics', null=True,blank=True )  #, default='images/doctors/profile_pics/default.png')
-    field = models.CharField( max_length=255, choices=CHOICES , default=TYPE_USER)
+    field = models.CharField( max_length=255, choices=CHOICES , default=TYPE_USER,null=True, blank= True)
+    clinic_address = models.TextField(null=True, blank=True)  # Clinic address, allowing multiline text
+    clinic_telephone_number = models.CharField(max_length=15, null=True, blank=True)
+    doctorate_code = models.CharField(max_length=50, blank=True,unique=True, null=True)
 
     def get_default_profile_image(self):
     
@@ -66,22 +63,15 @@ class Psychiatrist(models.Model ) :
             self.user.save()
         super().save(*args, **kwargs)
 
-
 class Pationt( models.Model ) : 
     user = models.ForeignKey(User, on_delete=models.CASCADE , unique=True )
    # telegramAccount = models.OneToOneField(TelegramAccount , on_delete=models.CASCADE,null=True , blank=True ) 
-    
     def get_fullname(self) :
         return str(self.user.firstname) + " " + str(self.user.lastname)
-    
     def save(self, *args, **kwargs):
         """
         Check if there's already a Pationt object associated with this User
         """ 
-        # if Pationt.objects.filter(user=self.user).exists() and self.user.role == User.TYPE_USER :
-        #     return super().save(*args, **kwargs)    
-        # if Pationt.objects.filter(user=self.user).exists() :
-        #     raise ValidationError("A Pationt object already exists for this User.")
         if Psychiatrist.objects.filter(user=self.user).exists() :
             raise ValidationError("a doctor could not be register as a patient")
         return super().save(*args, **kwargs)

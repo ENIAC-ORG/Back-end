@@ -8,6 +8,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
       - shared_data:/app/data/
+      - ./init-scripts:/docker-entrypoint-initdb.d/  # Mount directory for init scripts
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_USER=${POSTGRES_USER}
@@ -46,7 +47,6 @@ services:
       - db:db
     networks:
       - eniac
-
 
 networks:
   eniac:
