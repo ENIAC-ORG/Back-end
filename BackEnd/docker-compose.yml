@@ -21,7 +21,7 @@ services:
 
   backend:
     build: .
-    image: eniacgroup/back-end:latest
+    image: eniacgroup/back-end:test
     container_name: backend
     volumes:
       - .:/app
