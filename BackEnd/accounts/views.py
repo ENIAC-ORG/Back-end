@@ -29,36 +29,81 @@ class SignUpView(CreateAPIView):
     serializer_class = SignUpSerializer
 
     def post(self, request):
-        serializer = SignUpSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
-        email = str.lower(validated_data["email"])
+        
+        email = self.normalize_email(validated_data["email"])
         is_doctor = validated_data.get("is_doctor", False)
         role = User.TYPE_PENDING if is_doctor else User.TYPE_USER
-
-        # verification code
-        verification_code = str(random.randint(1000, 9999))
-        # 88888888888888888888888888888888888888888888888888888888888888
-        # user = User.objects.filter(email__iexact = email )
-        user = User.objects.create(
+        
+        # Generate verification code
+        verification_code = self.generate_verification_code()
+        
+        # Create user
+        user = self.create_user(
             email=email,
-            password=make_password(validated_data["password1"]),
+            password=validated_data["password1"],
+            verification_code=verification_code,
+            role=role,
+        )
+
+        # Create related models if needed
+        if role != User.TYPE_PENDING:
+            self.create_patient(user)
+
+        # Generate token for email verification
+        token = self.generate_verification_token(user)
+
+        # Send verification email
+        self.send_verification_email(
+            user=user,
+            verification_code=verification_code,
+            token=token,
+        )
+
+        # Prepare response data
+        user_data = {
+            "user": UserSerializer(user).data,
+            "message": "User created successfully. Please check your email to activate your account.",
+            "code": verification_code,
+            "url": f"{settings.WEBSITE_URL}accounts/activation_confirm/{token}/",
+        }
+        return Response(user_data, status=status.HTTP_201_CREATED)
+
+    # Helper methods for better testability
+    def normalize_email(self, email):
+        """Normalize the email to lowercase."""
+        return str.lower(email)
+
+    def generate_verification_code(self):
+        """Generate a random verification code."""
+        return str(random.randint(1000, 9999))
+
+    def create_user(self, email, password, verification_code, role):
+        """Create and return a user."""
+        return User.objects.create(
+            email=email,
+            password=make_password(password),
             verification_code=verification_code,
             verification_tries_count=1,
             role=role,
-            # last_verification_sent=datetime.now(),
         )
 
-        # TODO   make sure it is locate in right place
-        if role != User.TYPE_PENDING:
-            Pationt.objects.create(user=user)
-        # varify email
-        token = generate_tokens(user.id)["access"]
+    def create_patient(self, user):
+        """Create a Patient record for the user."""
+        Pationt.objects.create(user=user)
+
+    def generate_verification_token(self, user):
+        """Generate an access token for the user."""
+        return generate_tokens(user.id)["access"]
+
+    def send_verification_email(self, user, verification_code, token):
+        """Send the verification email using a thread."""
         subject = "تایید ایمیل ثبت نام"
         show_text = (
             user.has_verification_tries_reset or user.verification_tries_count > 1
         )
-        # sending email verification with thread
         email_thread = EmailThread(
             email_handler,
             subject=subject,
@@ -68,15 +113,7 @@ class SignUpView(CreateAPIView):
             show_text=show_text,
             token=token,
         )
-
         email_thread.start()
-        user_data = {
-            "user": UserSerializer(user).data,
-            "message": "User created successfully. Please check your email to activate your account.",
-            "code": verification_code,
-            "url": f"{settings.WEBSITE_URL}accounts/activation_confirm/{token}/",
-        }
-        return Response(user_data, status=status.HTTP_201_CREATED)
 
 
 class ActivationConfirmView(GenericAPIView):
@@ -114,9 +151,11 @@ class ActivationConfirmView(GenericAPIView):
     def get_user_from_token(self, token):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            if not payload: 
+                return None
             user_id = payload.get("user_id")
             return User.objects.filter(id=user_id).first()
-        except ExpiredSignatureError:
+        except (ExpiredSignatureError, InvalidSignatureError):
             return None
 
     def validate_token(self, token):
@@ -177,17 +216,16 @@ class ChangePasswordView(GenericAPIView):
         )
         if serializer.is_valid():
             user = request.user
-            print(user.email)
+            
             old_password = serializer.validated_data["old_password"]
             new_password = serializer.validated_data["new_password"]
-
+            
             # Check if the current password matches the user's actual password
             if not user.check_password(old_password):
                 return Response(
                     {"error": "Invalid current password."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
             # Change the user's password
             user.set_password(new_password)
             user.save()
@@ -361,16 +399,18 @@ class CompleteInfoView(GenericAPIView):
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
-
+    
     def get(self, request):
-        print(request.COOKIES)
+        if not request.user.is_authenticated:
+            return Response(
+                data={"detail": "Not logged in"}, status=status.HTTP_401_UNAUTHORIZED
+            )       
         refresh_token = request.COOKIES.get("token")
         if refresh_token:
             try:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             except Exception as e:
-
                 return Response(
                     data={"detail": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST
                 )
@@ -379,14 +419,13 @@ class LogoutView(APIView):
             )
             response.delete_cookie("refresh_token")
             response.delete_cookie("access_token")
+            response.cookies.pop("refresh_token", None)
+            response.cookies.pop("access_token", None)
             return response
-        if request.user.is_authenticated:
-            logout(request)
-            return Response(
-                data={"detail": "Logged out successfully"}, status=status.HTTP_200_OK
-            )
+
+        logout(request)
         return Response(
-            data={"detail": "Not logged in"}, status=status.HTTP_400_BAD_REQUEST
+            data={"detail": "Logged out successfully"}, status=status.HTTP_200_OK
         )
 
 
@@ -429,3 +468,5 @@ class DoctorApplicationView(GenericAPIView):
             )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
