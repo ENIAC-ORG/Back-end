@@ -327,7 +327,7 @@ class AdminDoctorPannel(viewsets.ModelViewSet):
                 pending_doctor.save()
                 return Response(
                     {'message': 'Ther is problem in the application of pending doctor.'},
-                status=status.HTTP_204_NO_CONTENT)
+                status=status.HTTP_200_OK)
         
         except Exception as e:
             return Response(
