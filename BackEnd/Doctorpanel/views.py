@@ -253,7 +253,7 @@ class AdminDoctorPannel(viewsets.ModelViewSet):
             ).order_by('-name_similarity', '-code_similarity')
 
         doctor_application_serializer = DoctorApplicationSerializer(queryset,many=True )
-        return Response({"data" : doctor_application_serializer.data} , status= status.HTTP_204_NO_CONTENT)
+        return Response({"data" : doctor_application_serializer.data} , status= status.HTTP_200_OK)
 
 
     def accept(self , request, *args, **kwargs): 
