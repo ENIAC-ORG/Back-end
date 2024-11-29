@@ -52,8 +52,6 @@ class SignUpSerializer(serializers.ModelSerializer):
             
         return str.lower(value)
     
-    
-    
     def validate_password2(self, value):
         
         if value != self.initial_data.get('password1'):

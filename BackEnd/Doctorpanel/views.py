@@ -252,7 +252,6 @@ class AdminDoctorPannel(viewsets.ModelViewSet):
                 Q(name_similarity__gte=0.3) | Q(code_similarity__gte=0.3)  # Adjust similarity threshold as needed
             ).order_by('-name_similarity', '-code_similarity')
 
-        
         doctor_application_serializer = DoctorApplicationSerializer(queryset,many=True )
         return Response({"data" : doctor_application_serializer.data} , status= status.HTTP_204_NO_CONTENT)
 
