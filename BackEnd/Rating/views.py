@@ -1,12 +1,9 @@
-from django.shortcuts import render
-from rest_framework.viewsets import ModelViewSet
 from .models import *
 from .serializers import  RatingSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.db import IntegrityError, transaction
 from reservation.models import Reservation
 
 class RatingViewSet(APIView):
@@ -19,7 +16,6 @@ class RatingViewSet(APIView):
         if serializer.is_valid():
             pationt_id = request.user.id
             psychiatrist = serializer.validated_data['psychiatrist']
-
             try:
                 pationt = Pationt.objects.get(user_id=pationt_id)
             except Pationt.DoesNotExist:
@@ -42,5 +38,4 @@ class RatingViewSet(APIView):
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            print("hellllllllllllllllllllllllllllllllllllllllllllllllllllll")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
