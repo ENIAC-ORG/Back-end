@@ -23,6 +23,9 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get install -y netcat 
 # Copy project
 COPY . /app/
+
+RUN chmod +x docke-entrypoint.sh 
+RUN chmod +x wait-for.sh
 # COPY data.sql data/
 EXPOSE 8000
 EXPOSE 8001
