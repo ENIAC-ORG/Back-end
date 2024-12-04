@@ -2,9 +2,24 @@
 
 echo "Waiting for postgresql to start..."
 ./wait-for.sh db:5432 
+apps=(
+    "accounts"
+    "Profile"
+    "counseling"
+    "django.contrib.sites"
+    "reservation"
+    "TherapyTests"
+    "Doctorpanel"
+    "Rating"
+    "channels"
+    "chat"
+)
 
 echo "--------------------------- Migrating the databse ---------------------------"
-python manage.py makemigrations 
+for app in "${apps[@]}"; do
+    echo "Running makemigrations for app: $app"
+    python manage.py makemigrations "$app"
+done
 python manage.py migrate
 # python manage.py migrate --noinput
 
