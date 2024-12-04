@@ -44,6 +44,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 # REDIS_HOST = os.environ.get('REDIS_HOST', '154.211.2.87') 
 CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8070',
+    'http://127.0.0.1:8070',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'http://127.0.0.1:80',
@@ -57,7 +59,7 @@ CSRF_COOKIE_SECURE = True
 SITE_ID = 1
 
 WEBSITE_URL = os.environ.get('WEBSITE_URL','http://localhost:8000/') 
-# /////////////////////ووووووووو
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES' : [
         'rest_framework.permissions.AllowAny'

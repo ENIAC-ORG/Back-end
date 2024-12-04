@@ -25,6 +25,6 @@ RUN apt-get install -y netcat
 COPY . /app/
 # COPY data.sql data/
 EXPOSE 8000
-
+EXPOSE 8001
 # CMD [ "python" , "manage.py" , "runserver" ]
 
