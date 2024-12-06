@@ -8,14 +8,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
       - shared_data:/app/data/
-      - ./init-scripts:/docker-entrypoint-initdb.d/ 
+      - ./init-scripts:/docker-entrypoint-initdb.d/
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-    ports:
-      - '5432:5432'
     networks:
       - eniac
 
@@ -37,7 +35,7 @@ services:
       - PYTHONUNBUFFERED=1
     depends_on:
       - db
-    entrypoint: 
+    entrypoint:
       - ./docker-entrypoint.sh
     links:
       - db:db
@@ -58,7 +56,7 @@ services:
         - backend
       networks:
         - eniac
-      
+
 networks:
   eniac:
     driver: bridge

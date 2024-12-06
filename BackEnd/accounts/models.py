@@ -6,6 +6,9 @@ from django.contrib.auth.models import AbstractBaseUser , BaseUserManager
 from datetime import datetime
 from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import make_password
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class UserManager(BaseUserManager):
@@ -26,7 +29,8 @@ class UserManager(BaseUserManager):
             phone_number = phone_number 
         )
 
-        user.set_password(password)
+        user.password = make_password(password)
+        logger.warning( f"************* this is password {user.password} *****")
         user.save(using=self._db)
         return user
     
@@ -38,7 +42,6 @@ class UserManager(BaseUserManager):
         Creates and saves a superuser with the given email, birthdat
         and password.
         """
-        
         user = self.create_user(
             email=email,
             password=password,
@@ -49,17 +52,19 @@ class UserManager(BaseUserManager):
             phone_number="+989999999999" 
         )
 
-        user.is_admin = True 
+        user.is_admin = True
         user.is_superuser = True
         user.is_email_verified = True
+        user.is_staff = True
         user.is_active = True
         user.role = User.TYPE_ADMIN
         user.save(using=self._db)
         return user
-    
 
     def save(self, *args, **kwargs):
         self.password = make_password(self.password)
+        logger.warning( f"***** this is password {self.password} in save method")
+        logger.warning("*****************************************************")
 
     def get_by_natural_key(self, email):
         return self.get(email=email)
@@ -122,6 +127,8 @@ class User(AbstractBaseUser):
     verification_tries_count = models.IntegerField(default=0)
     # last_verification_sent = models.DateTimeField(null=True, blank=True, default=datetime.now())
     has_verification_tries_reset = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)  
+    is_superuser = models.BooleanField(default=False)  
     
     def get_role(self ) : 
         return self.role
@@ -137,12 +144,6 @@ class User(AbstractBaseUser):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
-    
-    @property
-    def is_staff(self):
-        "Is the user a member of staff?"
-        # Simplest possible answer: All admins are staff
-        return self.is_admin
 
 
 class Pending_doctor(models.Model): 

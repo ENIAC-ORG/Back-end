@@ -34,7 +34,11 @@ ALLOWED_HOSTS = ['*']
 
 SECURE_SSL_REDIRECT = False
 # Application definition
+CSRF_TRUSTED_ORIGINS = [
 
+     'http://*',
+    'https://*',
+]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -43,19 +47,14 @@ EMAIL_HOST_PASSWORD = 'otawrhfscdedswzd'# '%_giw.9?5=3aNQr'#env.str('EMAIL_HOST_
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 # REDIS_HOST = os.environ.get('REDIS_HOST', '154.211.2.87') 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8070',
-    'http://127.0.0.1:8070',
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-    'http://127.0.0.1:80',
-    'http://localhost/' , 
-    'http://localhost:80/'
+CSRF_TRUSTED_ORIGINS =[
+    'http://*',
+    'https://*',
 ]
 
-# Set secure cookies  http://localhost/signup
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Set secure cookies , for https set them to True 
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 SITE_ID = 1
 
 WEBSITE_URL = os.environ.get('WEBSITE_URL','http://localhost:8000/') 
