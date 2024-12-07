@@ -3,6 +3,8 @@ from django.db import models
 from counseling.models import Pationt , Psychiatrist
 from django.core.exceptions import ValidationError 
 import datetime
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 # نیاز به بقا	
 # نیاز به عشق و تعلق خاطر	
 # نیاز به آزادی	
@@ -20,7 +22,11 @@ class TherapyTests(models.Model) :
     pationt = models.OneToOneField(Pationt , on_delete=models.CASCADE )
     MBTItest = models.CharField( max_length=6 , blank=True , null=True  )
     glasserTest = models.ForeignKey( GlasserTest , on_delete=models.DO_NOTHING  , blank=True , null=True)
-    phq9 = models.IntegerField(max = 27 , min = 0 , blank=True , null= True)
+    phq9 = models.IntegerField(
+	    validators=[MinValueValidator(0), MaxValueValidator(27)],
+	    blank=True,
+	    null=True
+	)
     phq9_created_at = models.DateTimeField(auto_now_add=True)
 
 class MedicalRecord(models.Model) : 
