@@ -5,7 +5,6 @@ from accounts.models import User
 from rest_framework import status
 from rest_framework.response import Response
 from .models import Conversation, ConMessage
-from time import timezone
 from .serializers import ConversionSerializer, ConMessageSerializer
 from TherapyTests.models import TherapyTests
 from counseling.models import Pationt
@@ -13,7 +12,7 @@ import os
 import requests
 import numpy as np
 import os
-from time import timezone
+from django.utils import timezone
 from .disorder_detector.stress_detector import (
     check_for_stress_in_text,
     load_stress_detector_model_tokenizer,
@@ -28,6 +27,9 @@ from .message_validator.message_validator import (
     load_validator_model_and_tokenizer,
     predict_validator_labels,
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 RAPID_API_KEY = os.getenv("RAPID_API_KEY")
@@ -146,14 +148,15 @@ class DepressionChatView(viewsets.ModelViewSet):
             "max_tokens": 100,
             "temperature": 0.9,
         }
+        logger.warning(f"**************** this is rapid key : {RAPID_API_KEY}")
         headers = {
             "x-rapidapi-key": RAPID_API_KEY,
-            "x-rapidapi-host": "cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com",
+            "x-rapidapi-host": RAPID_API_HOST , 
             "Content-Type": "application/json",
         }
 
         response = requests.post(RAPID_API_URL, json=payload, headers=headers)
-
+        logger.warning(f"response status code : {response} ") 
         if response.status_code == 200:
             result = response.json()
             answer = (
@@ -169,7 +172,7 @@ class DepressionChatView(viewsets.ModelViewSet):
             print(f"Response Text: {response.text}")
     
             return Response(
-                {"message": "there is pro."},
+                {"message": f"there is problem. {response}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -188,7 +191,7 @@ class DepressionChatView(viewsets.ModelViewSet):
                 {"message": "There is no conversation with this ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+        conversation = conversation.first()
         try:
             patient = Pationt.objects.get(user=user)
         except Pationt.DoesNotExist:
@@ -206,8 +209,8 @@ class DepressionChatView(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        if (timezone.now() - therapy_test.created_at).days >= 7:
+        therapy_test = therapy_test.first()
+        if (timezone.now() - therapy_test.phq9_created_at).days >= 7:
             return Response(
                 {
                     "message": "you did not have any Tests more than 7 days before, first take the phq9 test."
@@ -226,8 +229,8 @@ class DepressionChatView(viewsets.ModelViewSet):
         v_emotion = predict_emotion_label(message, emotion_model, emotion_tokenizer)
 
         chats = ConMessage.objects.filter(conversation = conversation)
-        if not chats.exists():
-            chats = []
+#        if not chats.exists():
+#           chats = []
 
         chat = ConMessage.objects.create(
             user=user,
@@ -241,6 +244,7 @@ class DepressionChatView(viewsets.ModelViewSet):
         for _ in range(5):
             # Get a response from OpenAI based on the chat history and current message
             response = self.ask_openai(chat, chat_history=chats, window_size=20)
+            logger.warning(f"***********************8 yths s sthe esopnse {response}")
             validation = predict_validator_labels(
                 response, validator_model, validator_tokenizer
             )

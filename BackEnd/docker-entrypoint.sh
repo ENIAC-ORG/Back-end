@@ -14,6 +14,7 @@ apps=(
     "Rating"
     "channels"
     "chat"
+    "depression_chat"
 )
 
 echo "--------------------------- Migrating the databse ---------------------------"
