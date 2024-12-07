@@ -287,7 +287,38 @@ class DepressionChatView(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
     
+    def delete(self, request, *args, **kwargs):
+     
+        user = request.user
+        if user.role != User.TYPE_USER:
+            return Response(
+                {"message": "This bot is only for patients."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
+        conversation_id = kwargs.get("pk")
+        try:
+
+            conversation = Conversation.objects.get(id=conversation_id)
+        except Conversation.DoesNotExist:
+            return Response(
+                {"message": "Conversation not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+ 
+        if conversation.user != user:
+            return Response(
+                {"message": "You are not authorized to delete this conversation."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        ConMessage.objects.filter(conversation=conversation).delete()
+        conversation.delete()
+        return Response(
+            {"message": "Conversation deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+    
+    
     def Retrieve_all_conversations(self, request, *args, **kwargs):
         user = request.user
         if user.role != User.TYPE_USER:

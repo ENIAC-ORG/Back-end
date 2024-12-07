@@ -9,5 +9,6 @@ urlpatterns = [
     path('chat/<int:pk>/message/', DepressionChatView.as_view({'post': 'Message'}), name='send_message'),
     path('chat/<int:pk>/', DepressionChatView.as_view({'get': 'Retrieve_conversation'}), name='retrieve_conversation'),
     path('chat/all/', DepressionChatView.as_view({'get': 'Retrieve_all_conversations'}), name='retrieve_all_conversations'),
+    path('chat/<int:pk>/delete/', DepressionChatView.as_view({'delete': 'delete'}), name='delete_conversation'),
 ]
 
