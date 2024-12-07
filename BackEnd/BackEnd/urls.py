@@ -50,7 +50,7 @@ urlpatterns = [
     path('Rating/',include("Rating.urls")),
     path('DoctorPanel/',include("Doctorpanel.urls")),
     path('chat/', include("chat.urls")),
-    path('depression-chat/' , include("depression_chat") ),
+    path('depression-chat/' , include("depression_chat.urls") ),
 ]
 
 if settings.DEBUG:
