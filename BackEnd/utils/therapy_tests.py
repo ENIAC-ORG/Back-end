@@ -1,16 +1,5 @@
 
 def GlasserResults(data ) : 
-    # data = {
-    #     1 : {
-    #         "category" : 2 , 
-    #         "res" : 4
-    #     },
-    #     2 : {
-    #         "category" : 2 , 
-    #         "res" : 4
-    #     }
-    # }
-
     categories_score = {}
     categories_nums = {}
     for value in data.values() : 
@@ -25,7 +14,16 @@ def GlasserResults(data ) :
         categories_score[key] = round(( categories_score[key] /categories_nums[key]),2) 
     return categories_score 
 
-    
+def phq9Results(data) : 
+    score = 0 
+    if len (data) > 9 or len(data) ==0 : 
+        return None
+    for v in data.values(): 
+        if v <0 or v > 3 : 
+            return None
+        score += v
+    return score 
+   
 def GetMBTIresults(data, gender ) : 
     colomn1 = [ data[7*i + 1] for i in range(10)]   
     colomn2 = [ data[7*i + 2] for i in range(10)]   
