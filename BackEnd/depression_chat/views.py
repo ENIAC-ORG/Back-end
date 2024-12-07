@@ -27,12 +27,13 @@ from .message_validator.message_validator import (
     load_validator_model_and_tokenizer,
     predict_validator_labels,
 )
+from dotenv import load_dotenv
+
 import logging
 
 logger = logging.getLogger(__name__)
+load_dotenv()
 
-
-RAPID_API_KEY = os.getenv("RAPID_API_KEY")
 validator_model, validator_tokenizer = load_validator_model_and_tokenizer()
 emotion_model, emotion_tokenizer = load_emotion_detector_model_tokenizer()
 disorder_tokenizer, disorder_model = load_stress_detector_model_tokenizer()
@@ -84,7 +85,7 @@ class DepressionChatView(viewsets.ModelViewSet):
             for chat in chats:
                 # if chat.response == self.first_server_prompt:
                 #     continue
-                day_diff = (timezone.now() - chat.created_at).days
+                day_diff = (timezone.now() - chat.timestamp).days
                 weight = np.exp(-decay_factor * day_diff)
                 weighted_scores.append(getattr(chat, feature)[label] * weight)
                 total_weight += weight
@@ -135,7 +136,8 @@ class DepressionChatView(viewsets.ModelViewSet):
 
     Patient message: {chat_obj.message}
     """
-
+        load_dotenv()
+        RAPID_API_KEY = os.getenv("RAPID_API_KEY")
         messages.append({"role": "user", "content": prompt})
         RAPID_API_HOST = (
             "cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com"
@@ -143,7 +145,7 @@ class DepressionChatView(viewsets.ModelViewSet):
         RAPID_API_URL = f"https://{RAPID_API_HOST}/v1/chat/completions"
 
         payload = {
-            "messages": [{"role": "user", "content": messages}],
+            "messages": messages,
             "model": "gpt-4o",
             "max_tokens": 100,
             "temperature": 0.9,
@@ -218,11 +220,11 @@ class DepressionChatView(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        user_msg = request.data.get("user_msg")
-        if conversation.name == "":
-            conversation.name = user_msg
-
         message = request.data.get("message")
+        if conversation.name == "":
+            conversation.name = message
+            conversation.save()
+        
         v_disorder = check_for_stress_in_text(
             message, disorder_model, disorder_tokenizer
         )
