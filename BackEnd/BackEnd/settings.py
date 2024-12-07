@@ -30,6 +30,9 @@ DEBUG = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session engine
+
 ALLOWED_HOSTS = ['*']
 
 SECURE_SSL_REDIRECT = False
@@ -124,6 +127,7 @@ INSTALLED_APPS = [
     "Rating",
     "channels",
     "chat",
+    "depression_chat",
 ]
 
 # INSTALLED_APPS = [
