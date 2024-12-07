@@ -20,7 +20,8 @@ class TherapyTests(models.Model) :
     pationt = models.OneToOneField(Pationt , on_delete=models.CASCADE )
     MBTItest = models.CharField( max_length=6 , blank=True , null=True  )
     glasserTest = models.ForeignKey( GlasserTest , on_delete=models.DO_NOTHING  , blank=True , null=True)
-
+    phq9 = models.IntegerField(max = 27 , min = 0 , blank=True , null= True)
+    phq9_created_at = models.DateTimeField(auto_now_add=True)
 
 class MedicalRecord(models.Model) : 
     GENDER_Male = 'مرد'
