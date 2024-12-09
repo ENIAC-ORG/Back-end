@@ -13,7 +13,7 @@ from datetime import date , timedelta
 from Doctorpanel.models import FreeTime
 from django.db import transaction
 from datetime import date , timedelta ,datetime
-from Doctorpanel.serializers import FreeTimeSerializer
+from Doctorpanel.serializers import FreeTimeSerializer , GETFreeTimeSerializer
 
 
 class ReservationView(viewsets.ModelViewSet ) : 
