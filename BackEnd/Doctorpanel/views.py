@@ -310,10 +310,12 @@ class PsychiatristInfoView(viewsets.ModelViewSet):
             field = serializer.validated_data['field']
             clinic_address = serializer.validated_data['clinic_address']
             clinic_telephone_number = serializer.validated_data['clinic_telephone_number']
+            description = serializer.validated_data['description']
             psychiatrist.image = image
             psychiatrist.field = field
             psychiatrist.clinic_address=clinic_address
             psychiatrist.clinic_telephone_number = clinic_telephone_number
+            psychiatrist.description = description
             psychiatrist.save()
             serializer = DoctorInfoSerializer(instance=psychiatrist)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

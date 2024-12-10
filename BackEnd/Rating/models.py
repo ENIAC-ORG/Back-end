@@ -1,6 +1,5 @@
 from django.db import models
 from counseling.models import Psychiatrist,Pationt
-from django.utils.timezone import now
 
 class Rating(models.Model):
     CHOICES = (
@@ -14,7 +13,7 @@ class Rating(models.Model):
     pationt = models.ForeignKey(Pationt, on_delete=models.CASCADE)
     rating = models.PositiveIntegerField(default=0, choices=CHOICES)
     comments = models.TextField(blank=True)
-    date = models.DateTimeField(default=now)
+    date = models.DateField()
 
     class Meta:
         unique_together = ('psychiatrist', 'pationt')

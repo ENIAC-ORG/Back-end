@@ -6,7 +6,6 @@ class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = ('psychiatrist', 'rating', 'comments')
-        read_only_fields = ('date',) 
 
     def run_validation(self, data=...):
         return super().run_validation(data)  
