@@ -11,7 +11,7 @@ from django.utils import timezone
 from Rating.views import RatingViewSet
 from Rating.models import Rating
 from django.db.models import Count, Avg
-from .serializers import  ReservationListSerializer , FreeTimeSerializer , GETFreeTimeSerializer , FreeTimeByDateSerializer
+from .serializers import  ReservationListSerializer , FreeTimeSerializer , GETFreeTimeSerializer , FreeTimeByDateSerializer ,DoctorInfoSerializer
 from datetime import datetime, timedelta
 from .models import FreeTime
 from rest_framework import generics, status
@@ -85,7 +85,6 @@ class DoctorPanelView(viewsets.ModelViewSet):
         ).order_by('date','time')
         reservation_serializer = ReservationListSerializer(reservations_next_seven_days, many=True)
         return Response({'reservations_next_seven_days': reservation_serializer.data})
-
 
     def GetFreeTimes(self, request):
         try:
@@ -295,7 +294,40 @@ class DoctorPanelView(viewsets.ModelViewSet):
     #     else:
     #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+class PsychiatristInfoView(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = DoctorInfoSerializer
 
+    def PostDoctorInfo(self,request):
+        try:
+            psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
+        except Psychiatrist.DoesNotExist:
+            return Response({'error': 'Psychiatrist not found.'}, status=HTTP_404_NOT_FOUND)
+        
+        serializer = DoctorInfoSerializer(data = request.data)
+        if serializer.is_valid():
+            image = serializer.validated_data['image']
+            field = serializer.validated_data['field']
+            clinic_address = serializer.validated_data['clinic_address']
+            clinic_telephone_number = serializer.validated_data['clinic_telephone_number']
+            psychiatrist.image = image
+            psychiatrist.field = field
+            psychiatrist.clinic_address=clinic_address
+            psychiatrist.clinic_telephone_number = clinic_telephone_number
+            psychiatrist.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else : 
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def GetDoctorInfo(self, request, *args, **kwargs):
+        try:
+            psychiatrist_id = kwargs.get('pk')
+            psychiatrist = Psychiatrist.objects.get(id=psychiatrist_id)
+        except Psychiatrist.DoesNotExist:
+            return Response({'error': 'Psychiatrist not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = DoctorInfoSerializer(psychiatrist)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AdminDoctorPannel(viewsets.ModelViewSet):

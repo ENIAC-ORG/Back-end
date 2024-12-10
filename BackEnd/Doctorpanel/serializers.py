@@ -49,3 +49,19 @@ class FreeTimeByDateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         return super().validate(attrs)
+    
+class DoctorInfoSerializer(serializers.ModelSerializer):
+    class Meta : 
+        model = Psychiatrist
+        fields = ['image', 'field','clinic_address','clinic_telephone_number']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['doctorate_code'] = instance.doctorate_code
+        representation['fullname'] = instance.get_fullname()  
+        return representation
+    
+    def validate(self, attrs):
+        if not attrs.get('field'):
+            raise serializers.ValidationError('Field is required.')
+        return attrs

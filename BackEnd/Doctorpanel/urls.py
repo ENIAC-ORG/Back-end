@@ -13,6 +13,8 @@ urlpatterns = [
     path('pending_doctor/accept/<int:pk>/' , AdminDoctorPannel.as_view({'post': 'accept' })) , 
     path('pending_doctor/deny/<int:pk>/' , AdminDoctorPannel.as_view({'post': 'deny'})) , 
     path('pending_doctor/' , AdminDoctorPannel.as_view({'get' : 'get_queryset'})) , 
+    path('compeletedoctorinfo/',PsychiatristInfoView.as_view({'post':'PostDoctorInfo'})),
+    path('getdoctorinfo/<int:pk>/',PsychiatristInfoView.as_view({'get':'GetDoctorInfo'})),
     #  requesting query : http://localhost:8000/doctorpannel/pending_doctor/search=zahra alizaeh?
     #  requesting query : http://localhost:8000/doctorpannel/pending_doctor/search=1234555? --> using doctor code 
 ]
