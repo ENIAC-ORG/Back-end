@@ -55,7 +55,7 @@ class DoctorInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Psychiatrist
-        fields = ['image', 'field', 'clinic_address', 'clinic_telephone_number','doctorate_code',  'fullname']
+        fields = ['image', 'field', 'clinic_address', 'clinic_telephone_number','doctorate_code',  'fullname','description']
         read_only_fields = ('doctorate_code',)
 
     def get_fullname(self, obj):
