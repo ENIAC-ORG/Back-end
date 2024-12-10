@@ -11,7 +11,7 @@ from django.utils import timezone
 from Rating.views import RatingViewSet
 from Rating.models import Rating
 from django.db.models import Count, Avg
-from .serializers import DoctorPanelSerializer ,ReservationListSerializer , FreeTimeSerializer
+from .serializers import  ReservationListSerializer , FreeTimeSerializer , GETFreeTimeSerializer , FreeTimeByDateSerializer ,DoctorInfoSerializer
 from datetime import datetime, timedelta
 from .models import FreeTime
 from rest_framework import generics, status
@@ -25,9 +25,6 @@ from django.db.models.functions import Concat
 from django.contrib.postgres.search import TrigramSimilarity  # For PostgreSQL databases
 from accounts.models import Pending_doctor , User
 import utils.email as email_handler 
-
-
-
 
 class DoctorPanelView(viewsets.ModelViewSet):
     serializer_class=FreeTimeSerializer
@@ -74,7 +71,6 @@ class DoctorPanelView(viewsets.ModelViewSet):
         reservation_serializer = ReservationListSerializer(reservations_this_week, many=True)
         return Response({'reservations_this_week': reservation_serializer.data})
 
-
     def NextWeekReservations(self, request):
         try:
             psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
@@ -90,7 +86,23 @@ class DoctorPanelView(viewsets.ModelViewSet):
         reservation_serializer = ReservationListSerializer(reservations_next_seven_days, many=True)
         return Response({'reservations_next_seven_days': reservation_serializer.data})
 
-    def PostFreeTime(self, request):
+    def GetFreeTimes(self, request):
+        try:
+            psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
+        except Psychiatrist.DoesNotExist:
+            return Response({'error': 'Psychiatrist not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        current_time = timezone.now()
+
+        free_times = FreeTime.objects.filter(
+            psychiatrist=psychiatrist,
+            date__gte=current_time.date()
+        ).order_by('date', 'time')
+
+        serializer = GETFreeTimeSerializer(free_times, many=True)
+        return Response({'Free Time List': serializer.data}, status=status.HTTP_200_OK)
+
+    def PostFreeTimes(self, request):
         serializer = FreeTimeSerializer(data=request.data)
         if serializer.is_valid():
             month = serializer.validated_data['month']
@@ -100,6 +112,17 @@ class DoctorPanelView(viewsets.ModelViewSet):
                 psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
             except Psychiatrist.DoesNotExist:
                 return Response({'error': 'Psychiatrist not found.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            existing_free_times = FreeTime.objects.filter(
+                psychiatrist=psychiatrist,
+                month=month,
+                day=day
+                )       
+            if existing_free_times.exists():
+                return Response(
+                {'error': 'Free times already exist for this date. Use UpdateFreeTime to modify existing times.'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
 
             times_list = list(set(time.strip() for time in times.split(',')))
 
@@ -110,7 +133,7 @@ class DoctorPanelView(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-    def DeleteFreeTime(self, request):
+    def DeleteFreeTimes(self, request):
         serializer = FreeTimeSerializer(data=request.data)
         if serializer.is_valid():
             month = serializer.validated_data['month']
@@ -151,32 +174,41 @@ class DoctorPanelView(viewsets.ModelViewSet):
                 return Response({
                     'success': 'All specified free times deleted successfully.',
                     'deleted_times': deleted_times
-                }, status=status.HTTP_204_NO_CONTENT)
+                }, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def UpdateFreeTime(self, request):
+    def UpdateFreeTimes(self, request):
         serializer = FreeTimeSerializer(data=request.data)
         if serializer.is_valid():
             month = serializer.validated_data['month']
             day = serializer.validated_data['day']
             times = serializer.validated_data['time']
 
-            times_list = list(set(time.strip() for time in times.split(',')))
-
             try:
                 psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
             except Psychiatrist.DoesNotExist:
                 return Response({'error': 'Psychiatrist not found.'}, status=status.HTTP_404_NOT_FOUND)
+            
+            existing_free_times = FreeTime.objects.filter(
+                psychiatrist=psychiatrist,
+                month=month,
+                day=day
+                )
+            if not existing_free_times.exists():
+                return Response(
+                    {'error': 'No free times exist for this date. Use PostFreeTime to add new free times.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            times_list = list(set(time.strip() for time in times.split(',')))
 
-            # Delete all free times for the specified month and day
             FreeTime.objects.filter(
                 psychiatrist=psychiatrist,
                 month=month,
                 day=day
             ).delete()
 
-            # Create new free times
             created_free_times=self._create_free_times(month,day,times_list,psychiatrist)
 
             response_data = FreeTimeSerializer(created_free_times, many=True).data
@@ -186,7 +218,12 @@ class DoctorPanelView(viewsets.ModelViewSet):
 
     def _create_free_times(self,month,day,times,psychiatrist):
         month_index = next(index for index, choice in enumerate(FreeTime.MONTH_CHOICES) if choice[0] == month) + 1
-        year = datetime.now().year
+        current_year = datetime.now().year
+        current_month = datetime.now().month
+        if month_index < current_month:
+            year = current_year + 1
+        else:
+            year = current_year
         start_date = datetime(year, month_index, 1)
         end_date = start_date + timedelta(days=calendar.monthrange(year, month_index)[1] - 1)
 
@@ -224,6 +261,73 @@ class DoctorPanelView(viewsets.ModelViewSet):
             date += timedelta(days=7)
         return created_free_times
 
+    # def UpdateFreeTimeByDate(self, request):
+    #     serializer = FreeTimeByDateSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         date = serializer.validated_data['date']
+    #         newtime = serializer.validated_data['newtime']
+    #         oldtime = serializer.validated_data['oldtime']
+
+    #         try:
+    #             psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
+    #         except Psychiatrist.DoesNotExist:
+    #             return Response({'error': 'Psychiatrist not found.'}, status=status.HTTP_404_NOT_FOUND)
+            
+    #         existing_free_times = FreeTime.objects.filter(
+    #             psychiatrist=psychiatrist,
+    #             date=date,
+    #             time=oldtime.strip()
+    #             )
+    #         if not existing_free_times.exists():
+    #             return Response(
+    #                 {'error': 'No free times exist for this date. Use PostFreeTime to add new free times.'},
+    #                 status=status.HTTP_400_BAD_REQUEST
+    #             )
+            
+    #         updated_free_times = []
+    #         for free_time in existing_free_times:
+    #             free_time.time = newtime.strip()
+    #             free_time.save()
+    #             updated_free_times.append(free_time)
+    #         response_data = FreeTimeSerializer(updated_free_times, many=True).data
+    #         return Response(response_data, status=status.HTTP_201_CREATED)
+    #     else:
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class PsychiatristInfoView(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = DoctorInfoSerializer
+
+    def PostDoctorInfo(self,request):
+        try:
+            psychiatrist = Psychiatrist.objects.get(user_id=request.user.id)
+        except Psychiatrist.DoesNotExist:
+            return Response({'error': 'Psychiatrist not found.'}, status=HTTP_404_NOT_FOUND)
+        
+        serializer = DoctorInfoSerializer(data = request.data)
+        if serializer.is_valid():
+            image = serializer.validated_data['image']
+            field = serializer.validated_data['field']
+            clinic_address = serializer.validated_data['clinic_address']
+            clinic_telephone_number = serializer.validated_data['clinic_telephone_number']
+            psychiatrist.image = image
+            psychiatrist.field = field
+            psychiatrist.clinic_address=clinic_address
+            psychiatrist.clinic_telephone_number = clinic_telephone_number
+            psychiatrist.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else : 
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def GetDoctorInfo(self, request, *args, **kwargs):
+        try:
+            psychiatrist_id = kwargs.get('pk')
+            psychiatrist = Psychiatrist.objects.get(id=psychiatrist_id)
+        except Psychiatrist.DoesNotExist:
+            return Response({'error': 'Psychiatrist not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = DoctorInfoSerializer(psychiatrist)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AdminDoctorPannel(viewsets.ModelViewSet):

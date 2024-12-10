@@ -3,13 +3,6 @@ from counseling.models import Psychiatrist
 from reservation.models import Reservation
 from .models import FreeTime
 
-class DoctorPanelSerializer(serializers.Serializer):
-    psychiatrist_id = serializers.IntegerField()
-    class Meta :
-        model = Psychiatrist
-        fields = ["psychiatrist_id"]
-    def validate(self, attrs):
-        return super().validate(attrs) 
     
 class ReservationListSerializer(serializers.ModelSerializer):
     patient_full_name = serializers.SerializerMethodField()
@@ -35,4 +28,40 @@ class FreeTimeSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if not attrs.get('month') or not attrs.get('day') or not attrs.get('time'):
             raise serializers.ValidationError('All fields are required.')
+        return attrs
+    
+
+class GETFreeTimeSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = FreeTime
+        fields = ['month', 'day', 'time', 'date']  
+
+    def validate(self, attrs):
+        return super().validate(attrs)
+    
+class FreeTimeByDateSerializer(serializers.ModelSerializer):
+    oldtime = serializers.CharField()
+    newtime = serializers.CharField()
+    class Meta:
+        model = FreeTime
+        fields = ['date', 'oldtime', 'newtime']  
+
+    def validate(self, attrs):
+        return super().validate(attrs)
+    
+class DoctorInfoSerializer(serializers.ModelSerializer):
+    class Meta : 
+        model = Psychiatrist
+        fields = ['image', 'field','clinic_address','clinic_telephone_number']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['doctorate_code'] = instance.doctorate_code
+        representation['fullname'] = instance.get_fullname()  
+        return representation
+    
+    def validate(self, attrs):
+        if not attrs.get('field'):
+            raise serializers.ValidationError('Field is required.')
         return attrs

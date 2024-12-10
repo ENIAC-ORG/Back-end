@@ -48,12 +48,3 @@ class BetweenDatesSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         return super().validate(attrs)    
     
-
-class GETFreeTimeSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = FreeTime
-        fields = ['month', 'day', 'time', 'date']  
-
-    def validate(self, attrs):
-        return super().validate(attrs)
