@@ -315,7 +315,7 @@ class PsychiatristInfoView(viewsets.ModelViewSet):
             psychiatrist.clinic_address=clinic_address
             psychiatrist.clinic_telephone_number = clinic_telephone_number
             psychiatrist.save()
-
+            serializer = DoctorInfoSerializer(instance=psychiatrist)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else : 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -326,7 +326,7 @@ class PsychiatristInfoView(viewsets.ModelViewSet):
         except Psychiatrist.DoesNotExist:
             return Response({'error': 'Psychiatrist not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = DoctorInfoSerializer(psychiatrist)
+        serializer = DoctorInfoSerializer(instance=psychiatrist)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
