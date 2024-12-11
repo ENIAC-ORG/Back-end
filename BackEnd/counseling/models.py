@@ -30,6 +30,7 @@ class Psychiatrist(models.Model ) :
     clinic_address = models.TextField(null=True, blank=True)  # Clinic address, allowing multiline text
     clinic_telephone_number = models.CharField(max_length=15, null=True, blank=True)
     doctorate_code = models.CharField(max_length=50, blank=True,unique=True, null=True)
+    description = models.TextField(blank=True, null=True)
 
     def get_default_profile_image(self):
     
