@@ -13,7 +13,9 @@ class Psychiatrist(models.Model ) :
     TYPE_TEEN  = "نوجوان"
     TYPE_FAMILY = "خانواده"
     TYPE_EDUCATIONAL = "تحصیلی"
-    
+    TYPE_COUCHING = "کوچینگ"
+    TYPE_CLINICAL = "بالینی"
+    TYPE_PSYCLOGICAL = "روان پزشکی"
     TYPE_USER = "defualt"
     CHOICES = (
         (TYPE_INDIVIDUAL , "فردی") , 
@@ -21,7 +23,10 @@ class Psychiatrist(models.Model ) :
         (TYPE_KIDS , "کودک") , 
         (TYPE_TEEN , "نوجوان") ,
         (TYPE_EDUCATIONAL , 'تحصیلی') , 
-        (TYPE_FAMILY , 'خانواده') 
+        (TYPE_FAMILY , 'خانواده') , 
+        (TYPE_COUCHING , 'کوچینگ') ,
+        (TYPE_CLINICAL , "بالینی") ,
+        (TYPE_PSYCLOGICAL,"روان پزشکی")
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE , unique=True )
