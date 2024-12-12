@@ -211,11 +211,20 @@ class DepressionChatView(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
         therapy_test = therapy_test.first()
+        if therapy_test.phq9 == None : 
+            return Response(
+                {
+                    "message": "you did not take phq9 before, first take the phq9 test."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
         if (timezone.now() - therapy_test.phq9_created_at).days >= 7:
             return Response(
                 {
-                    "message": "you did not have any Tests more than 7 days before, first take the phq9 test."
+                    "message": "You did not take the PHQ-9 test more than 7 days ago. Please take the PHQ-9 test first."
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -244,19 +253,28 @@ class DepressionChatView(viewsets.ModelViewSet):
         )
 
         for _ in range(5):
-            # Get a response from OpenAI based on the chat history and current message
+          
             response = self.ask_openai(chat, chat_history=chats, window_size=20)
             logger.warning(f"***********************8 yths s sthe esopnse {response}")
-            validation = predict_validator_labels(
-                response, validator_model, validator_tokenizer
+            try: 
+                validation = predict_validator_labels(
+                    response, validator_model, validator_tokenizer
+                )
+                if not validation:
+                    break
+            except : 
+                return Response(
+                {
+                    "message": "bad connection to open ai."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
-            if not validation:
-                break
           
         chat.validation = validation
         chat.response = response
         chat.save()
-        return Response({"message": message, "response": response})
+        return Response({"message": message, "response": response}, 
+                        status=status.HTTP_200_OK )
 
     def Retrieve_conversation(self, request, *args, **kwargs):
         user = request.user
