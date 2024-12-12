@@ -15,6 +15,7 @@ apps=(
     "channels"
     "chat"
     "depression_chat"
+    "recomendationSys"
 )
 
 echo "--------------------------- Migrating the databse ---------------------------"

@@ -130,6 +130,7 @@ INSTALLED_APPS = [
     "channels",
     "chat",
     "depression_chat",
+    "recomendationSys",
 ]
 
 # INSTALLED_APPS = [
