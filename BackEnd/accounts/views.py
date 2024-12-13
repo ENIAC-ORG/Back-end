@@ -436,12 +436,12 @@ class LogoutView(APIView):
 
 
 class DoctorApplicationView(GenericAPIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = DoctorApplicationSerializer
 
     def post(self, request):
-        # user = request.user
-        user = User.objects.filter(email = "doctor7@gmail.com").first()
+        user = request.user
+        # user = User.objects.filter(email = "doctor7@gmail.com").first()
     
         if user.role != User.TYPE_PENDING:
             return Response(
@@ -449,7 +449,7 @@ class DoctorApplicationView(GenericAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         logger.info(f"this is user {str(user)}")
-        serializer = self.get_serializer(data=request.data)
+        serializer = DoctorApplicationSerializer(data=request.data)
         if serializer.is_valid():
             validated_data = serializer.validated_data
 
@@ -470,7 +470,7 @@ class DoctorApplicationView(GenericAPIView):
             # email_handler.send_doctor_application_email(
             #     subject=subject, recipient_list=[user.email], pending_user=pending_doctor
             # )
-            logger.warning(f"888888888888888888888888******************************* {request.data}")
+            logger.warning(f" 888888888888888888888888******************************* {request.data}")
             return Response(
                 {"message": "Application submitted. Awaiting admin approval."},
                 status=status.HTTP_200_OK,
