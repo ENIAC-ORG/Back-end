@@ -28,7 +28,12 @@ def get_calendar_service(user_email):
             credentials.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(GOOGLE_CLIENT_SECRETS_FILE, SCOPES)
-            credentials = flow.run_authorized_server(port=8080)
+            auth_url, _ = flow.authorization_url(prompt='consent')
+
+            print(f"Please go to this URL and authorize the application: {auth_url}")
+            code = input("Enter the authorization code here: ")
+            flow.fetch_token(code=code)
+            credentials = flow.credentials
 
             # Save the credentials back to the token file
             user_token = json.loads(credentials.to_json())
