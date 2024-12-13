@@ -13,7 +13,9 @@ class Psychiatrist(models.Model ) :
     TYPE_TEEN  = "نوجوان"
     TYPE_FAMILY = "خانواده"
     TYPE_EDUCATIONAL = "تحصیلی"
-    
+    TYPE_COUCHING = "کوچینگ"
+    TYPE_CLINICAL = "بالینی"
+    TYPE_PSYCLOGICAL = "روان پزشکی"
     TYPE_USER = "defualt"
     CHOICES = (
         (TYPE_INDIVIDUAL , "فردی") , 
@@ -21,7 +23,10 @@ class Psychiatrist(models.Model ) :
         (TYPE_KIDS , "کودک") , 
         (TYPE_TEEN , "نوجوان") ,
         (TYPE_EDUCATIONAL , 'تحصیلی') , 
-        (TYPE_FAMILY , 'خانواده') 
+        (TYPE_FAMILY , 'خانواده') , 
+        (TYPE_COUCHING , 'کوچینگ') ,
+        (TYPE_CLINICAL , "بالینی") ,
+        (TYPE_PSYCLOGICAL,"روان پزشکی")
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE , unique=True )
@@ -30,6 +35,7 @@ class Psychiatrist(models.Model ) :
     clinic_address = models.TextField(null=True, blank=True)  # Clinic address, allowing multiline text
     clinic_telephone_number = models.CharField(max_length=15, null=True, blank=True)
     doctorate_code = models.CharField(max_length=50, blank=True,unique=True, null=True)
+    description = models.TextField(blank=True, null=True)
 
     def get_default_profile_image(self):
     
