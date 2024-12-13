@@ -1,41 +1,68 @@
+from django.shortcuts import redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from utils.google_api_helper import create_meet_event
-from utils.email import send_GoogleMeet_Link
+from google_auth_oauthlib.flow import Flow
+from reservation.models import Reservation
+from utils.google_api_helper import is_authorized, create_meet_event, save_tokens
+from utils.project_variables import GOOGLE_CLIENT_SECRETS_FILE, SCOPES
 
-class GoogleMeetLinkAPIView(APIView):
-    def post(self, request):
-        data = request.data
-        host_email = data.get("host_email")
-        start_time = data.get("start_time")
-        end_time = data.get("end_time")
-        patient_email = data.get("patient_email")  
-        psychiatrist_name = data.get("psychiatrist_name")  
-        appointment_date = start_time.split('T')[0]  
-        appointment_time = start_time.split('T')[1].split('Z')[0]  
+class GenerateGoogleMeetLinkView(APIView):
+    def get(self, request, reservation_id):
+        try:
+            reservation = Reservation.objects.get(pk=reservation_id)
+        except Reservation.DoesNotExist:
+            return Response({"error": "Reservation not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if not all([host_email, start_time, end_time, patient_email, psychiatrist_name]):
-            return Response(
-                {"error": "host_email, start_time, end_time, patient_email, and psychiatrist_name are required."},
-                status=status.HTTP_400_BAD_REQUEST
+        host_email = reservation.psychiatrist.user.email
+
+        if not is_authorized(host_email):
+            flow = Flow.from_client_secrets_file(
+                GOOGLE_CLIENT_SECRETS_FILE,
+                scopes=SCOPES,
+                redirect_uri='https://eniacgroup.ir/googlemeet/google-oauth-callback/'
             )
+            authorization_url, _ = flow.authorization_url(
+                access_type='offline',
+                include_granted_scopes='true'
+            )
+            request.session['reservation_id'] = reservation_id
+            return Response({"authorization_url": authorization_url}, status=status.HTTP_401_UNAUTHORIZED)
+
+        start_time = f"{reservation.date}T{reservation.time}:00Z"
+        end_time = f"{reservation.date}T{reservation.time}:00Z"  
 
         try:
             event = create_meet_event(host_email, start_time, end_time)
-            meet_link = event["hangoutLink"]
-
-            # Send email to the patient
-            subject = "لینک جلسه مجازی "
-            send_GoogleMeet_Link(subject, [patient_email], psychiatrist_name, appointment_date, appointment_time, meet_link)
-
-            return Response(
-                {
-                    "message": "Google Meet link created and sent successfully.",
-                    "meet_link": meet_link,
-                    "event_details": event,
-                },
-                status=status.HTTP_201_CREATED,
-            )
+            reservation.MeetingLink = event["hangoutLink"]
+            reservation.save(update_fields=["MeetingLink"])
+            
+            return redirect(reservation.MeetingLink)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GoogleOAuthCallbackView(APIView):
+    def get(self, request):
+        code = request.GET.get('code')
+        reservation_id = request.session.get('reservation_id')
+
+        if not code or not reservation_id:
+            return Response({"error": "Invalid authorization flow."}, status=400)
+
+        flow = Flow.from_client_secrets_file(
+            GOOGLE_CLIENT_SECRETS_FILE,
+            scopes=SCOPES,
+            redirect_uri='https://eniacgroup.ir/googlemeet/google-oauth-callback/'
+        )
+
+        try:
+            flow.fetch_token(code=code)
+            credentials = flow.credentials
+            user_email = credentials.id_token['email']
+
+            save_tokens(user_email, credentials)
+
+            return redirect(f'/generate-meet-link/{reservation_id}/')
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
