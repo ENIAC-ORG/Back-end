@@ -54,6 +54,7 @@ class SignUpView(CreateAPIView):
             self.create_patient(user)
         logger.warning(f"*********************************************** here role : {role}")
         if role == User.TYPE_PENDING : 
+            logger.warning(f"***********************444444444444444444444444444 here role : {role}")
             pending= Pending_doctor.objects.create(
                 user = user 
             )
