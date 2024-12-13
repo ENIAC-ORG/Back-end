@@ -30,32 +30,28 @@ class ReservationView(viewsets.ModelViewSet ) :
         validated_data =  serializer.validated_data
         
         if not hasattr(request, 'user'):
-            return Response({'message': 'user is not loged in'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'user is not loged in'}, status=status.HTTP_400_BAD_REQUEST)
         id = validated_data['doctor_id']
         doctor =  Psychiatrist.objects.filter(id = id )
         if not doctor.exists() : 
-            return Response({'message': 'docotr id is not corroct.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'docotr id is not corroct.'}, status=status.HTTP_400_BAD_REQUEST)
 
         chosen_date = validated_data["date"]
         chosen_time = validated_data["time"]
         free_time = FreeTime.objects.filter(psychiatrist=doctor.first(), date=str(chosen_date), time=str(chosen_time)).first()
         if not free_time:
-            return Response({'message': 'This time is not available for the chosen doctor.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'This time is not available for the chosen doctor.'}, status=status.HTTP_400_BAD_REQUEST)
         
         if request.user.role=='doctor':
-            return Response({'Message':'The role must be paitient'})
+            return Response({'error':'The role must be paitient'} ,status=status.HTTP_400_BAD_REQUEST)
         pationt = Pationt.objects.filter( user = request.user ).first()
-        # if not pationt.exists():
-        #     return Response({'Message':'This paitient dose not  exist'})
         last_reservation = Reservation.objects.filter(pationt = pationt )
         
         if last_reservation.exists() : 
             last_reservation = last_reservation.last()
-            # parsed_date = datetime.strptime(validated_data["date"], "%Y-%m-%d")
             diff = validated_data["date"] - last_reservation.date if validated_data["date"] > last_reservation.date  else last_reservation.date - validated_data["date"] 
-            print( "diffffffffffffffff *****************" , diff )
             if diff.days < 8: 
-                return Response( {"message" : "you can not reservere 2 times under 8 days drift"} , status=status.HTTP_400_BAD_REQUEST)
+                return Response( {'error' : 'you can not reservere 2 times under 8 days drift'} , status=status.HTTP_400_BAD_REQUEST)
 
         reserve = Reservation.objects.create(
                 type = validated_data["type"] , 
@@ -90,7 +86,7 @@ class ReservationView(viewsets.ModelViewSet ) :
                 
             return Response({"message": "Reservation successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
         except Reservation.DoesNotExist:
-            return Response({"message": "Reservation not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Reservation not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def GetAllFreeTime(self, request, *args, **kwargs):
         try:
@@ -121,7 +117,6 @@ class ReservationView(viewsets.ModelViewSet ) :
             return Response({"message" : 'there is not doctor with this id '} , status=status.HTTP_400_BAD_REQUEST)
         docotor = docotor.first()
         queryset = queryset.filter(date__year=year, date__month=month , psychiatrist = docotor)
-        # print("here*******************************************************")
         serializer = ReserveSerializer(queryset, many=True)
         return Response(serializer.data , status=status.HTTP_200_OK)
     
@@ -146,9 +141,7 @@ class ReservationView(viewsets.ModelViewSet ) :
         thirsday = date( day= saturday.day , month=saturday.month , year=saturday.year) + timedelta(days=5)
         
         reservations = Reservation.objects.filter( psychiatrist = doctor)
-        print(reservations )
         reservations = reservations.filter(date__range=[str(saturday) , str(thirsday) ])
-        print([str(saturday) , str(thirsday) ])
         serializer = ReserveSerializer(reservations, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
