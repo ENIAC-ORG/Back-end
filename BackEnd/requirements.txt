@@ -1,3 +1,4 @@
+torch
 asgiref==3.8.1
 certifi==2024.8.30
 cffi==1.17.1
@@ -47,5 +48,4 @@ tzdata==2024.1
 uritemplate==4.1.1
 urllib3==2.2.3
 transformers
-torch
 python-Levenshtein
