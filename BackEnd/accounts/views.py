@@ -436,12 +436,13 @@ class LogoutView(APIView):
 
 
 class DoctorApplicationView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = DoctorApplicationSerializer
 
     def post(self, request):
-        user = request.user
-
+        # user = request.user
+        user = User.objects.filter(email = "doctor7@gmail.com").first()
+    
         if user.role != User.TYPE_PENDING:
             return Response(
                 {"message": "Only pending users can apply as doctors."},
