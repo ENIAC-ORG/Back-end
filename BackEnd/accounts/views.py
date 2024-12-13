@@ -67,7 +67,7 @@ class SignUpView(CreateAPIView):
             "user": UserSerializer(user).data,
             "message": "User created successfully. Please check your email to activate your account.",
             "code": verification_code,
-            "url": f"{settings.WEBSITE_URL}accounts/activation_confirm/{token}/",
+            "url": f"http://46.249.100.141:8070/accounts/activation_confirm/{token}/",
         }
         return Response(user_data, status=status.HTTP_201_CREATED)
 
