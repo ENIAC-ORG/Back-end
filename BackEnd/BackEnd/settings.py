@@ -37,13 +37,10 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session engine
 
 ALLOWED_HOSTS = ['*']
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 SECURE_SSL_REDIRECT = False
 # Application definition
-CSRF_TRUSTED_ORIGINS = [
-
-     'http://*',
-    'https://*',
-]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -55,6 +52,7 @@ EMAIL_USE_TLS = True
 CSRF_TRUSTED_ORIGINS =[
     'http://*',
     'https://*',
+    'https://eniacgroup.ir'
 ]
 
 # Set secure cookies , for https set them to True 
