@@ -450,6 +450,7 @@ class DoctorApplicationView(GenericAPIView):
             )
         logger.info(f"this is user {str(user)}")
         serializer = self.get_serializer(data=request.data)
+        logger.warning(f"this is data******************************* {request.data}")
         if serializer.is_valid():
             validated_data = serializer.validated_data
 
