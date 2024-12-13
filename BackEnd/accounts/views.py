@@ -19,6 +19,7 @@ from django.contrib.auth.decorators import login_required
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from counseling.models import Pationt
+from .models import Pending_doctor
 from rest_framework.permissions import AllowAny
 import logging
 
@@ -51,7 +52,10 @@ class SignUpView(CreateAPIView):
         # Create related models if needed
         if role != User.TYPE_PENDING:
             self.create_patient(user)
-
+        elif  role == User.TYPE_PENDING : 
+            pending= Pending_doctor.objects.create(
+                user = user 
+            )
         # Generate token for email verification
         token = self.generate_verification_token(user)
 
