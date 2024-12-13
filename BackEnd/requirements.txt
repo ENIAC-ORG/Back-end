@@ -19,6 +19,13 @@ djangorestframework-simplejwt==5.3.1
 drf-yasg==1.21.7
 environs==11.0.0
 fuzzywuzzy==0.18.0
+google-api-core==2.18.0
+google-api-python-client==2.125.0
+google-apps-meet==0.1.6
+google-auth==2.29.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+googleapis-common-protos==1.63.0
 idna==3.10
 inflection==0.5.1
 itypes==1.2.0
