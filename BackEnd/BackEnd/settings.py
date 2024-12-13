@@ -128,6 +128,8 @@ INSTALLED_APPS = [
     "channels",
     "chat",
     "depression_chat",
+    "GoogleMeet",
+    
 ]
 
 # INSTALLED_APPS = [
