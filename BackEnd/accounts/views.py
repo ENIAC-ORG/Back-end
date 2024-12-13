@@ -455,6 +455,7 @@ class DoctorApplicationView(GenericAPIView):
             # validated_data = serializer.validated_data
 
             # Update the user's information with validated data
+            logger.warning(f"this is data******************************* {request.data}")
             user.firstname = request.data["firstname"]
             user.lastname = request.data["lastname"]
 
@@ -466,7 +467,7 @@ class DoctorApplicationView(GenericAPIView):
             )
             pending_doctor.save()
             # Send an email notification to the user
-            logger.warning(f"this is data******************************* {request.data}")
+            
             subject = ". درخواست شما در حال بررسی است"
             # email_handler.send_doctor_application_email(
             #     subject=subject, recipient_list=[user.email], pending_user=pending_doctor
