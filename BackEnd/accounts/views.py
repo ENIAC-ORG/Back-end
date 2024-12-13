@@ -436,12 +436,12 @@ class LogoutView(APIView):
 
 
 class DoctorApplicationView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = DoctorApplicationSerializer
 
     def post(self, request):
-        user = request.user
-        # user = User.objects.filter(email = "doctor7@gmail.com").first()
+        # user = request.user
+        user = User.objects.filter(email = "doctor7@gmail.com").first()
     
         if user.role != User.TYPE_PENDING:
             return Response(
@@ -449,19 +449,20 @@ class DoctorApplicationView(GenericAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         logger.info(f"this is user {str(user)}")
-        serializer = DoctorApplicationSerializer(data=request.data)
-        if serializer.is_valid():
-            validated_data = serializer.validated_data
+        # serializer = DoctorApplicationSerializer(data=request.data)
+        # if serializer.is_valid():
+        if True: 
+            # validated_data = serializer.validated_data
 
             # Update the user's information with validated data
-            user.firstname = validated_data["firstname"]
-            user.lastname = validated_data["lastname"]
+            user.firstname = request.data["firstname"]
+            user.lastname = request.data["lastname"]
 
             pending_doctor = Pending_doctor.objects.create(
-                firstname=validated_data["firstname"],
-                lastname=validated_data["lastname"],
+                firstname=request.data["firstname"],
+                lastname=request.data["lastname"],
                 user=user,
-                doctorate_code = validated_data["doctorate_code"], 
+                doctorate_code = request.data["doctorate_code"], 
             )
             pending_doctor.save()
             # Send an email notification to the user
