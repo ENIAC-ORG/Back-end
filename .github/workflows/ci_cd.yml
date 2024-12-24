@@ -30,6 +30,12 @@ jobs:
     steps:
       # Step 1: Check out the code
       - uses: actions/checkout@v4
+      
+      # Debugging Step
+      - name: Debug Secrets
+        run: |
+          echo "Checking PostgreSQL user: ${{ secrets.POSTGRES_USER }}"
+          echo "Database name is set as ${{ secrets.POSTGRES_DB }}"
 
       # Step 2: Set up Python
       - name: Set up Python
@@ -42,7 +48,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
+          
       # Step 4: Wait for PostgreSQL to be ready
       - name: Wait for PostgreSQL
         run: |
