@@ -30,4 +30,7 @@ echo "--------------------------- Set Admin ---------------------------"
 DJANGO_SUPERUSER_PASSWORD=eniac@1403 python manage.py createsuperuser --no-input  --email=eniakgroupiust@gmail.com
 
 echo "--------------------------- Starting the Server ---------------------------"
-python -u manage.py runserver 0.0.0.0:8000
+# python -u manage.py runserver 0.0.0.0:8000
+uvicorn BackEnd.asgi:application --host 0.0.0.0 --port 8000
+
+
