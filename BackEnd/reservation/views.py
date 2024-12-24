@@ -178,3 +178,31 @@ class ReservationView(viewsets.ModelViewSet ) :
         serializer = ReserveSerializer(reservations, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+
+
+
+
+
+
+
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from .models import Reservation
+
+class FeedbackAPIView(APIView):
+
+    def post(self, request, reservation_id):
+        reservation = get_object_or_404(Reservation, id=reservation_id)
+        feedback = request.data.get('feedback')
+
+        if feedback:
+            reservation.feedback = feedback
+            reservation.save()
+            return Response({'message': 'فیدبک با موفقیت ثبت شد.'}, status=status.HTTP_200_OK)
+
+        return Response({'error': 'فیدبک ارسال نشده است.'}, status=status.HTTP_400_BAD_REQUEST)

@@ -37,6 +37,8 @@ class Reservation(models.Model) :
     MeetingLink= models.CharField(max_length=100,blank=True, null=True)
     type = models.CharField(max_length=15 ,choices=RESERVE_CHOICES)
     day = models.CharField(max_length=10, choices=DAY_CHOICES , blank=True  )
+    feedback = models.TextField(blank=True, null=True)  # فیدبک از جلسه
+    email_sent = models.BooleanField(default=False)  #ایمیل فیدبک ارسال شده یانه
 
     class Meta:
         unique_together = ['date', 'time' , 'pationt' , 'psychiatrist']
