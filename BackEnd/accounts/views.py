@@ -19,6 +19,7 @@ from django.contrib.auth.decorators import login_required
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from counseling.models import Pationt
+from .models import Pending_doctor
 from rest_framework.permissions import AllowAny
 import logging
 
@@ -51,7 +52,12 @@ class SignUpView(CreateAPIView):
         # Create related models if needed
         if role != User.TYPE_PENDING:
             self.create_patient(user)
-
+        # logger.warning(f"*********************************************** here role : {role}")
+        # if role == User.TYPE_PENDING : 
+        #     logger.warning(f"***********************444444444444444444444444444 here role : {role}")
+        #     pending= Pending_doctor.objects.create(
+        #         user = user 
+        #     )
         # Generate token for email verification
         token = self.generate_verification_token(user)
 
@@ -67,7 +73,7 @@ class SignUpView(CreateAPIView):
             "user": UserSerializer(user).data,
             "message": "User created successfully. Please check your email to activate your account.",
             "code": verification_code,
-            "url": f"{settings.WEBSITE_URL}accounts/activation_confirm/{token}/",
+            "url": f"http://46.249.100.141:8070/accounts/activation_confirm/{token}/",
         }
         return Response(user_data, status=status.HTTP_201_CREATED)
 
@@ -435,18 +441,20 @@ class DoctorApplicationView(GenericAPIView):
 
     def post(self, request):
         user = request.user
-
+        # user = User.objects.filter(email = "doctor7@gmail.com").first()
+    
         if user.role != User.TYPE_PENDING:
             return Response(
                 {"message": "Only pending users can apply as doctors."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         logger.info(f"this is user {str(user)}")
-        serializer = self.get_serializer(data=request.data)
+        serializer = DoctorApplicationSerializer(data=request.data)
         if serializer.is_valid():
             validated_data = serializer.validated_data
 
             # Update the user's information with validated data
+            logger.warning(f"this is data******************************* {request.data}")
             user.firstname = validated_data["firstname"]
             user.lastname = validated_data["lastname"]
 
@@ -457,11 +465,12 @@ class DoctorApplicationView(GenericAPIView):
                 doctorate_code = validated_data["doctorate_code"], 
             )
             pending_doctor.save()
-            # Send an email notification to the user
+            
             subject = ". درخواست شما در حال بررسی است"
             email_handler.send_doctor_application_email(
                 subject=subject, recipient_list=[user.email], pending_user=pending_doctor
             )
+            logger.warning(f" 888888888888888888888888******************************* {request.data}")
             return Response(
                 {"message": "Application submitted. Awaiting admin approval."},
                 status=status.HTTP_200_OK,

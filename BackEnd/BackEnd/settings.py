@@ -37,13 +37,10 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session engine
 
 ALLOWED_HOSTS = ['*']
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 SECURE_SSL_REDIRECT = False
 # Application definition
-CSRF_TRUSTED_ORIGINS = [
-
-     'http://*',
-    'https://*',
-]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -55,6 +52,7 @@ EMAIL_USE_TLS = True
 CSRF_TRUSTED_ORIGINS =[
     'http://*',
     'https://*',
+    'https://eniacgroup.ir'
 ]
 
 # Set secure cookies , for https set them to True 
@@ -130,6 +128,7 @@ INSTALLED_APPS = [
     "channels",
     "chat",
     "depression_chat",
+    "GoogleMeet",
     "recomendationSys",
     'RecomendationSystem',
 ]
@@ -205,33 +204,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'BackEnd.wsgi.application'
 ASGI_APPLICATION = 'BackEnd.asgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 # DATABASES = {
-
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'TherapyDB',
-#         'USER': 'postgres',
-#         'PASSWORD': 'Hgbr@@5391',
-#         'HOST': 'postgreSQL',
-#         # 'HOST': 'localhost',
-#         'PORT': '5432',
-#         'DISABLE_SERVER_SIDE_CURSORS': True,
-#         'TEST': {
-#             'NAME': 'test_TherapyDB', 
-#         },
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'TherapyDB',
+        'USER': 'postgres',
+        'PASSWORD': 'Hgbr@@5391',
+        'HOST': 'postgreSQL',
+        # 'HOST': 'localhost',
+        'PORT': '5432',
+        'DISABLE_SERVER_SIDE_CURSORS': True,
+        'TEST': {
+            'NAME': 'test_TherapyDB', 
+        },
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
