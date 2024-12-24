@@ -1,29 +1,33 @@
-
 from django.db import models
 from django.contrib.auth.models import User
-from django.conf import settings
 
-class ChatRoom(models.Model):
-    name = models.CharField(max_length=255, unique=True)  
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="rooms", on_delete=models.CASCADE)  
-    created_at = models.DateTimeField(auto_now_add=True)  
+# مدل گروه چت
+class Room(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.title
 
-    class Meta:
-        ordering = ['-created_at'] 
-    
 
+# مدل پیام‌ها
 class Message(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  
-    room = models.ForeignKey(ChatRoom, related_name="messages", on_delete=models.CASCADE)  
-    content = models.TextField()  
-    timestamp = models.DateTimeField(auto_now_add=True)  
-    is_server_message = models.BooleanField(default=False)  
+    room = models.ForeignKey(Room, related_name="messages", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Message by {self.user.username if self.user else 'Server'} at {self.timestamp}"
+        return f"{self.user.username}: {self.content[:20]}"
 
-    class Meta:
-        ordering = ['timestamp']  
+
+# مدل عضویت کاربران در گروه‌ها
+class RoomMembership(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    can_send_messages = models.BooleanField(default=True)
+    is_hidden = models.BooleanField(default=False)  # برای مخفی کردن گروه از لیست کاربران
+
+    def __str__(self):
+        return f"{self.user.username} in {self.room.title}"

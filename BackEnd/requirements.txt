@@ -1,3 +1,4 @@
+torch
 asgiref==3.8.1
 certifi==2024.8.30
 cffi==1.17.1
@@ -7,7 +8,7 @@ coreapi==2.3.3
 coreschema==0.0.4
 coverage==7.6.8
 cryptography==43.0.3
-Django==5.0.3
+Django
 django-cors-headers==4.3.1
 django-environ==0.11.2
 django-oauth-toolkit==2.3.0
@@ -54,5 +55,4 @@ tzdata==2024.1
 uritemplate==4.1.1
 urllib3==2.2.3
 transformers
-torch
 python-Levenshtein

@@ -129,7 +129,8 @@ INSTALLED_APPS = [
     "chat",
     "depression_chat",
     "GoogleMeet",
-    
+    "recomendationSys",
+    'RecomendationSystem',
 ]
 
 # INSTALLED_APPS = [
@@ -202,6 +203,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'BackEnd.wsgi.application'
 ASGI_APPLICATION = 'BackEnd.asgi.application'
+
+
+# DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
 #         'NAME': BASE_DIR / 'db.sqlite3',

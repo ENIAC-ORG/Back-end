@@ -13,20 +13,20 @@ import requests
 import numpy as np
 import os
 from django.utils import timezone
-from .disorder_detector.stress_detector import (
-    check_for_stress_in_text,
-    load_stress_detector_model_tokenizer,
-)
-from .emotion.emotion_detection import (
-    load_emotion_detector_model_tokenizer,
-    predict_emotion_label,
-    predict_emotion_of_texts,
-    label_dict,
-)
-from .message_validator.message_validator import (
-    load_validator_model_and_tokenizer,
-    predict_validator_labels,
-)
+# from .disorder_detector.stress_detector import (
+#     check_for_stress_in_text,
+#     load_stress_detector_model_tokenizer,
+# )
+# from .emotion.emotion_detection import (
+#     load_emotion_detector_model_tokenizer,
+#     predict_emotion_label,
+#     predict_emotion_of_texts,
+#     label_dict,
+# )
+# from .message_validator.message_validator import (
+#     load_validator_model_and_tokenizer,
+#     predict_validator_labels,
+# )
 from dotenv import load_dotenv
 
 import logging
@@ -34,9 +34,9 @@ import logging
 logger = logging.getLogger(__name__)
 load_dotenv()
 
-validator_model, validator_tokenizer = load_validator_model_and_tokenizer()
-emotion_model, emotion_tokenizer = load_emotion_detector_model_tokenizer()
-disorder_tokenizer, disorder_model = load_stress_detector_model_tokenizer()
+# validator_model, validator_tokenizer = load_validator_model_and_tokenizer()
+# emotion_model, emotion_tokenizer = load_emotion_detector_model_tokenizer()
+# disorder_tokenizer, disorder_model = load_stress_detector_model_tokenizer()
 
 
 class DepressionChatView(viewsets.ModelViewSet):
@@ -234,23 +234,24 @@ class DepressionChatView(viewsets.ModelViewSet):
             conversation.name = message
             conversation.save()
         
-        v_disorder = check_for_stress_in_text(
-            message, disorder_model, disorder_tokenizer
-        )
-        v_emotion = predict_emotion_label(message, emotion_model, emotion_tokenizer)
+#         v_disorder = check_for_stress_in_text(
+#             message, disorder_model, disorder_tokenizer
+#         )
+#         v_emotion = predict_emotion_label(message, emotion_model, emotion_tokenizer)
 
-        chats = ConMessage.objects.filter(conversation = conversation)
-#        if not chats.exists():
-#           chats = []
+#         chats = ConMessage.objects.filter(conversation = conversation)
+# #        if not chats.exists():
+# #           chats = []
 
-        chat = ConMessage.objects.create(
-            user=user,
-            conversation=conversation,
-            message=message,
-            timestamp=timezone.now(),
-            emotion=v_emotion,
-            disorder=v_disorder,
-        )
+#         chat = ConMessage.objects.create(
+#             user=user,
+#             conversation=conversation,
+#             message=message,
+#             timestamp=timezone.now(),
+#             emotion=v_emotion,
+#             disorder=v_disorder,
+#         )
+
 
         for _ in range(5):
           
@@ -275,6 +276,7 @@ class DepressionChatView(viewsets.ModelViewSet):
         chat.save()
         return Response({"message": message, "response": response}, 
                         status=status.HTTP_200_OK )
+
 
     def Retrieve_conversation(self, request, *args, **kwargs):
         user = request.user
