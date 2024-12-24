@@ -6,16 +6,14 @@ services:
     container_name: postgreSQL
     image: postgres:13.1-alpine
     volumes:
-      # - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
       - shared_data:/app/data/
-      - ./init-scripts:/docker-entrypoint-initdb.d/  # Mount directory for init scripts
+      - ./init-scripts:/docker-entrypoint-initdb.d/
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-    ports:
-      - '5432:5432'
     networks:
       - eniac
 
@@ -37,23 +35,49 @@ services:
       - PYTHONUNBUFFERED=1
     depends_on:
       - db
-    command: 
+    entrypoint:
       - ./docker-entrypoint.sh
-    ports:
-      - '8000:8000'
-    expose:
-      - '8000' 
     links:
       - db:db
     networks:
       - eniac
+
+  nginx:
+      image: nginx
+      container_name: nginx
+      restart: always
+      ports:
+        - "8070:80"
+      volumes:
+        - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf
+        - static_volume:/home/app/static
+        - media_volume:/home/app/media
+      depends_on:
+        - backend
+      networks:
+        - eniac
 
 networks:
   eniac:
     driver: bridge
 
 volumes:
-  # postgres_data:
+  postgres_data:
   media_volume:
   shared_data:
   static_volume:
+
+  # nginx:
+  #   container_name: nginx
+  #   image: nginx:latest
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - backend
+  #   volumes:
+  #     - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro  # Mount your custom Nginx config
+  #     - static_volume:/app/static  # Serve static files
+  #     - media_volume:/app/media  # Serve media files
+  #   networks:
+  #     - eniac

@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from utils.therapy_tests import GetMBTIresults ,GlasserResults
+from utils.therapy_tests import GetMBTIresults ,GlasserResults , phq9Results
 from counseling.models import Pationt ,Psychiatrist
 from .models import TherapyTests , GlasserTest , MedicalRecord , MedicalRecordPermission 
 from rest_framework import status 
@@ -102,7 +102,7 @@ class MedicalRecordView(viewsets.ModelViewSet ) :
         item = ress.first()
         serializer = MedicalRecordGetSerializer(instance=item)
         return Response(serializer.data, status=status.HTTP_200_OK)
-        
+    
 
     def query_on_records(self , request ) : 
         query = request.data.get('name')
@@ -279,6 +279,63 @@ class GlasserTestView(viewsets.ModelViewSet ) :
         mbti = TherapyTests.objects.filter( pationt = pationt ).first()
         return Response( {"glasser" : mbti.glasserTest} , status=status.HTTP_200_OK )
             
+class PHQ9test(viewsets.ModelViewSet): 
+    permission_classes = [IsAuthenticated]
+    def create(self, request, *args, **kwargs):
+        data = request.data 
+        try: 
+            for key in data.keys() : 
+                data[int(key)] = data[key]
+            user = request.user
+            pationt = Pationt.objects.filter(user = user).first()
+            phq = phq9Results(data)                    
+            old_test = TherapyTests.objects.filter( pationt = pationt ).first()
+            if old_test : 
+                old_test.phq9 = phq
+                old_test.phq9_created_at = timezone.now()
+                old_test.save()
+                data = {
+                    'message' : 'test`s results was successfullly updated' , 
+                    "result" : phq ,
+                }
+                return Response( data= data , status=status.HTTP_200_OK )
+            else : 
+                test = TherapyTests.objects.create( 
+                    pationt = pationt ,
+                    phq9 = phq , 
+                    phq9_created_at = timezone.now(),
+                )
+                data = {
+                    'message' : 'test`s results was successfullly registered' , 
+                    "result" : phq
+                }
+                return Response( data= data , status=status.HTTP_200_OK )
+    
+
+        except KeyError as e:
+            return Response(
+                data={"message": f"Invalid data key: {e}."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except ValueError as e:
+            return Response(
+                data={"message": f"Value error encountered: {e}."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                data={"message": f"An unexpected error occurred: {str(e)}."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+    def retrieve(self, request, *args, **kwargs):
+        user = request.user
+        pationt = Pationt.objects.filter(user = user ).first()
+        # mbti = pationt.therapytests 
+        test = TherapyTests.objects.filter( pationt = pationt ).first()
+        return Response( {"type" : test.phq9 , "created_at" : test.phq9_created_at} , status=status.HTTP_200_OK )
+
 
 class GetMBTItest(viewsets.ModelViewSet) : 
     permission_classes = [IsAuthenticated ]

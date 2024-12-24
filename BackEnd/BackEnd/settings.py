@@ -30,11 +30,20 @@ DEBUG = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+MEDIA_URL = "media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session engine
+
 ALLOWED_HOSTS = ['*']
 
 SECURE_SSL_REDIRECT = False
 # Application definition
+CSRF_TRUSTED_ORIGINS = [
 
+     'http://*',
+    'https://*',
+]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -43,21 +52,18 @@ EMAIL_HOST_PASSWORD = 'otawrhfscdedswzd'# '%_giw.9?5=3aNQr'#env.str('EMAIL_HOST_
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 # REDIS_HOST = os.environ.get('REDIS_HOST', '154.211.2.87') 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-    'http://127.0.0.1:80',
-    'http://localhost/' , 
-    'http://localhost:80/'
+CSRF_TRUSTED_ORIGINS =[
+    'http://*',
+    'https://*',
 ]
 
-# Set secure cookies  http://localhost/signup
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Set secure cookies , for https set them to True 
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 SITE_ID = 1
 
 WEBSITE_URL = os.environ.get('WEBSITE_URL','http://localhost:8000/') 
-# /////////////////////ووووووووو
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES' : [
         'rest_framework.permissions.AllowAny'
@@ -107,11 +113,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "accounts",
-    'corsheaders',
     "rest_framework",
     "rest_framework_swagger",
     "rest_framework_simplejwt.token_blacklist",
+    'corsheaders',
+    "accounts",
     "Profile",
     "counseling",
     "drf_yasg",
@@ -123,6 +129,9 @@ INSTALLED_APPS = [
     "Rating",
     "channels",
     "chat",
+    "depression_chat",
+    "recomendationSys",
+    'RecomendationSystem',
 ]
 
 # INSTALLED_APPS = [
@@ -200,29 +209,29 @@ ASGI_APPLICATION = 'BackEnd.asgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
-
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'TherapyDB',
-        'USER': 'postgres',
-        'PASSWORD': 'Hgbr@@5391',
-        'HOST': 'postgreSQL',
-        # 'HOST': 'localhost',
-        'PORT': '5432',
-        'DISABLE_SERVER_SIDE_CURSORS': True,
-        'TEST': {
-            'NAME': 'test_TherapyDB', 
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'TherapyDB',
+#         'USER': 'postgres',
+#         'PASSWORD': 'Hgbr@@5391',
+#         'HOST': 'postgreSQL',
+#         # 'HOST': 'localhost',
+#         'PORT': '5432',
+#         'DISABLE_SERVER_SIDE_CURSORS': True,
+#         'TEST': {
+#             'NAME': 'test_TherapyDB', 
+#         },
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

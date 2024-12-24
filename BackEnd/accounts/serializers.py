@@ -3,8 +3,7 @@ from accounts.models import User , Pending_doctor
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import password_validation
 from django.core import exceptions as exception
-
-
+from rest_framework import serializers
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

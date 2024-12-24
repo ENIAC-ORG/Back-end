@@ -1,5 +1,20 @@
-# Created by https://www.toptal.com/developers/gitignore/api/python,venv
-# Edit at https://www.toptal.com/developers/gitignore?templates=python,venv
+# Created by https://www.toptal.com/developers/gitignore/api/python,venv,git
+# Edit at https://www.toptal.com/developers/gitignore?templates=python,venv,git
+
+### Git ###
+# Created by git for backups. To disable backups in Git:
+# $ git config --global mergetool.keepBackup false
+*.orig
+
+# Created by git when using merge tools for conflicts
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+*_BACKUP_*.txt
+*_BASE_*.txt
+*_LOCAL_*.txt
+*_REMOTE_*.txt
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
@@ -124,9 +139,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-
 .env
-
 .venv
 env/
 venv/
@@ -187,39 +200,4 @@ pyrightconfig.json
 pyvenv.cfg
 pip-selfcheck.json
 
-<<<<<<< HEAD
-**/migrations/
-<<<<<<<< HEAD:.gitignore
-**/.vscode
-========
-
->>>>>>>> dev:BackEnd/.gitignore
-# End of https://www.toptal.com/developers/gitignore/api/python,venv
-=======
-# End of https://www.toptal.com/developers/gitignore/api/python,venv
-
-
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode
-
-### VisualStudioCode ###
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/*.code-snippets
-
-# Local History for Visual Studio Code
-.history/
-
-# Built Visual Studio Code Extensions
-*.vsix
-
-### VisualStudioCode Patch ###
-# Ignore all local history of files
-.history
-.ionide
-
-# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode
-
+# End of https://www.toptal.com/developers/gitignore/api/python,venv,git
