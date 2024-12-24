@@ -27,7 +27,7 @@ class GenerateGoogleMeetLinkView(APIView):
                 include_granted_scopes='true'
             )
             request.session['reservation_id'] = reservation_id
-            return Response({"authorization_url": authorization_url}, status=status.HTTP_401_UNAUTHORIZED)
+            return redirect(authorization_url)
 
         start_time = f"{reservation.date}T{reservation.time}:00Z"
         end_time = f"{reservation.date}T{reservation.time}:00Z"  
@@ -59,7 +59,12 @@ class GoogleOAuthCallbackView(APIView):
         try:
             flow.fetch_token(code=code)
             credentials = flow.credentials
-            user_email = credentials.id_token['email']
+            user_email = None
+            if credentials.id_token and 'email' in credentials.id_token:
+                user_email = credentials.id_token['email']
+            
+            if not user_email:
+                return Response({"error": "Unable to retrieve email from Google OAuth."}, status=400)
 
             save_tokens(user_email, credentials)
 
