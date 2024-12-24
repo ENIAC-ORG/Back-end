@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_TherapyDB
+        ports:
+          - 5432:5432
+
+    steps:
+      # Step 1: Check out the code
+      - uses: actions/checkout@v4
+    
+      # Step 2: Export secrets to environment variables
+      - name: Export Secrets
+        run: |
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> $GITHUB_ENV
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
+      # Debugging Step
+      - name: Verify PostgreSQL Connection
+        run: |
+          echo "Testing PostgreSQL connection..."
+          until pg_isready -h postgres -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 1
+          done
+          
+      # Debugging Step
+      - name: Debug Secrets
+        run: |
+          echo "Checking PostgreSQL user: $POSTGRES_USER"
+          echo "Database name is set as $POSTGRES_DB"
+
+      # Step 3: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # Step 3.1: Debug current directory and list files
+      - name: List files and print working directory
+        working-directory: BackEnd
+        run: |
+          echo "Current working directory:" $(pwd)
+          echo "Files in the directory:"
+          ls -la
+
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        working-directory: BackEnd
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 5: Wait for PostgreSQL to be ready
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U $POSTGRES_USER; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 1
+          done
+
+      # Step 6: Run migrations and tests
+      - name: Run Tests
+        working-directory: BackEnd
+        env:
+          DATABASE_URL: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/$POSTGRES_DB
+        run: |
+          python manage.py migrate
+          python manage.py test

@@ -14,6 +14,5 @@ class Rating(models.Model):
     rating = models.PositiveIntegerField(default=0, choices=CHOICES)
     comments = models.TextField(blank=True)
     date = models.DateField(null=True)
-
     class Meta:
         unique_together = ('psychiatrist', 'pationt')
