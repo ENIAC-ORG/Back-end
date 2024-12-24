@@ -17,7 +17,7 @@ jobs:
         image: postgres:13
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: Hgbr@@5391
           POSTGRES_DB: test_TherapyDB
         ports:
           - 5432:5432
