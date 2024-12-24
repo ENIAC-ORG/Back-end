@@ -47,7 +47,6 @@ jobs:
 
       # Step 3.1: Debug current directory and list files
       - name: List files and print working directory
-        working-directory: Backend
         run: |
           echo "Current working directory:" $(pwd)
           echo "Files in the directory:"
