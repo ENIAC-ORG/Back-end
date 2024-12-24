@@ -47,6 +47,7 @@ jobs:
 
       # Step 3.1: Debug current directory and list files
       - name: List files and print working directory
+        working-directory: Backend
         run: |
           echo "Current working directory:" $(pwd)
           echo "Files in the directory:"
@@ -54,7 +55,6 @@ jobs:
 
       # Step 4: Install dependencies
       - name: Install dependencies
-        working-directory: Backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
