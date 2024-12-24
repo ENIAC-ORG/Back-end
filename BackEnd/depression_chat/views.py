@@ -10,6 +10,16 @@ from TherapyTests.models import TherapyTests
 from counseling.models import Pationt
 import os
 import requests
+from pydub import AudioSegment
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import mimetypes
+import tempfile
+from transformers import AutoProcessor, AutoModelForSpeechSeq2Seq
+import torch
+import librosa
+import tempfile
 import numpy as np
 import os
 from django.utils import timezone
@@ -37,6 +47,76 @@ load_dotenv()
 validator_model, validator_tokenizer = load_validator_model_and_tokenizer()
 emotion_model, emotion_tokenizer = load_emotion_detector_model_tokenizer()
 disorder_tokenizer, disorder_model = load_stress_detector_model_tokenizer()
+
+def is_wav_file(file_path):
+    try:
+        audio = AudioSegment.from_file(file_path, format="wav")
+        return True
+    except Exception:
+        return False
+
+
+
+# بارگذاری مدل و پردازنده
+processor = AutoProcessor.from_pretrained("openai/whisper-large-v2")
+model = AutoModelForSpeechSeq2Seq.from_pretrained("openai/whisper-large-v2")
+
+def process_audio_to_text(audio_file):
+    """
+    پردازش فایل صوتی به متن با استفاده از مدل Whisper
+    """
+    # Load audio file
+    audio, rate = librosa.load(audio_file, sr=16000)  # Ensure the sampling rate is 16kHz
+
+    # Convert to the expected input format
+    input_features = processor(audio, sampling_rate=rate, return_tensors="pt").input_features
+
+    # Perform inference
+    with torch.no_grad():
+        generated_ids = model.generate(input_features)
+
+    # Decode the generated IDs to text
+    transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+
+    return transcription
+
+    
+
+class ProcessWavVoiceView(APIView):
+    def post(self, request, *args, **kwargs):
+        voice_file = request.FILES.get('voice_file')
+
+        if not voice_file:
+            return Response(
+                {"message": "No voice file provided."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ذخیره موقت فایل برای بررسی نوع
+        with tempfile.NamedTemporaryFile(delete=True) as temp_file:
+            for chunk in voice_file.chunks():
+                temp_file.write(chunk)
+            temp_file.seek(0)
+
+            # بررسی نوع فایل با استفاده از pydub
+            try:
+                audio = AudioSegment.from_file(temp_file.name, format="wav")
+            except Exception:
+                return Response(
+                    {"message": "Only valid WAV files are allowed."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # پردازش فایل صوتی به متن
+        processed_text = process_audio_to_text(voice_file)
+
+        return Response(
+            {
+                "message": "WAV file processed successfully.",
+                "processed_text": processed_text
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class DepressionChatView(viewsets.ModelViewSet):
