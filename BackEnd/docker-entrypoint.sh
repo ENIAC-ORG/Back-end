@@ -12,9 +12,10 @@ apps=(
     "TherapyTests"
     "Doctorpanel"
     "Rating"
-    "channels"
     "chat"
     "depression_chat"
+    "GoogleMeet"
+    "RecomendationSystem"
     "recomendationSys"
 )
 

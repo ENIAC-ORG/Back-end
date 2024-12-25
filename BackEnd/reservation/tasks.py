@@ -14,11 +14,11 @@ def check_and_send_feedback_email():
     reservations = Reservation.objects.filter(date__lt=now().date(), feedback__isnull=True, email_sent=False)
 
     for reservation in reservations:
-        # ایجاد لینک فرم فیدبک
+       
         feedback_url = reverse('api_feedback', args=[reservation.id])
         full_url = f'{settings.WEBSITE_URL}{feedback_url}'
 
-        # ارسال ایمیل
+       
         send_mail(
             subject='یادآوری: ارسال فیدبک جلسه',
             message=(
@@ -31,7 +31,6 @@ def check_and_send_feedback_email():
             fail_silently=False,
         )
 
-        # به‌روزرسانی وضعیت ایمیل
         reservation.email_sent = True
         reservation.save()
 
