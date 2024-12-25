@@ -3,12 +3,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import Room, Message, RoomMembership
-from .serializers import RoomSerializer, MessageSerializer
+from .serializers import RoomSerializer, MessageSerializer, RoomMembershipSerializer
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import User
-from rest_framework.decorators import api_view
 
-# API View برای لیست کردن و ایجاد گروه‌ها
+# API View for listing and creating rooms
 class RoomListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -18,10 +16,9 @@ class RoomListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        # تنها ادمین می‌تواند گروه جدید ایجاد کند
         if not request.user.is_staff:
             return Response({"error": "Only admin can create rooms."}, status=status.HTTP_403_FORBIDDEN)
-        
+
         serializer = RoomSerializer(data=request.data)
         if serializer.is_valid():
             room = serializer.save(created_by=request.user)
@@ -29,32 +26,33 @@ class RoomListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-# لیست کردن و ارسال پیام‌ها
+# API View for listing and sending messages
 class MessageListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, room_id):
         room = get_object_or_404(Room, id=room_id)
         messages = Message.objects.filter(room=room)
-        serializer = MessageSerializer(messages, many=True)
+        serializer = MessageSerializer(messages, many=True, context={"request": request})
         return Response(serializer.data)
 
     def post(self, request, room_id):
         room = get_object_or_404(Room, id=room_id)
-        if not RoomMembership.objects.filter(room=room, user=request.user).exists():
+        membership = RoomMembership.objects.filter(room=room, user=request.user).first()
+
+        if not membership:
             return Response({"error": "User not a member of this room."}, status=status.HTTP_403_FORBIDDEN)
-        
+
+        if not membership.can_send_messages:
+            return Response({"error": "You do not have permission to send messages in this room."}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = MessageSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user, room=room)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-
-# حذف پیام‌ها
+# API View for deleting messages
 class DeleteMessageView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -65,8 +63,7 @@ class DeleteMessageView(APIView):
         message.delete()
         return Response({"message": "Message deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
-
-# حذف گروه‌ها
+# API View for deleting rooms
 class DeleteRoomView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -77,8 +74,7 @@ class DeleteRoomView(APIView):
         room.delete()
         return Response({"message": "Room deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
-
-# ویرایش عنوان و توضیحات گروه
+# API View for updating room details
 class UpdateRoomView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -93,8 +89,7 @@ class UpdateRoomView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-# مخفی کردن یا نمایش گروه‌ها برای کاربر
+# API View for toggling room visibility
 class ToggleRoomVisibilityView(APIView):
     permission_classes = [IsAuthenticated]
 
