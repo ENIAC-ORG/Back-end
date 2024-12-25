@@ -19,7 +19,7 @@ class Message(models.Model):
     created_at = models.DateTimeField(default=datetime.now)
 
     def __str__(self):
-        return f"{self.user.username}: {self.content[:20]}"
+        return f"{self.user.email}: {self.content[:20]}"
 
 
 # مدل عضویت کاربران در گروه‌ها
@@ -30,4 +30,4 @@ class RoomMembership(models.Model):
     is_hidden = models.BooleanField(default=False)  # برای مخفی کردن گروه از لیست کاربران
 
     def __str__(self):
-        return f"{self.user.username} in {self.room.title}"
+        return f"{self.user.email} in {self.room.title}"
