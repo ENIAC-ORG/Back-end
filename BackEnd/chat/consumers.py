@@ -1,5 +1,10 @@
+
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from asgiref.sync import sync_to_async
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -23,7 +28,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data['message']
-        username = data['username']
+        user_email = data['email']
+
+        # Fetch user details asynchronously
+        user = await sync_to_async(User.objects.get)(email=user_email)
+        username = f"{user.firstname} {user.lastname}"  # Construct username as fullname
 
         # Broadcast message to room group
         await self.channel_layer.group_send(
@@ -31,16 +40,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'chat_message',
                 'message': message,
-                'username': username
+                'username': username,
+                'sender_email': user_email  # Add sender email for is_self check
             }
         )
 
     async def chat_message(self, event):
         message = event['message']
         username = event['username']
+        sender_email = event['sender_email']
+
+        # Check if the message belongs to the current user
+        is_self = self.scope["user"].email == sender_email
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'message': message,
-            'username': username
+            'username': username,
+            'is_self': is_self  # Add the flag to the response
         }))
