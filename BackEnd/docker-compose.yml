@@ -33,7 +33,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - name=value
       - PYTHONUNBUFFERED=1
-      - DJANGO_SETTINGS_MODULE=your_project_name.settings
+      - DJANGO_SETTINGS_MODULE=BackEnd.settings
     depends_on:
       - db
     entrypoint:
