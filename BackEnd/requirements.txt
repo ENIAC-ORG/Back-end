@@ -33,6 +33,7 @@ itypes==1.2.0
 Jinja2==3.1.4
 jwcrypto==1.5.6
 uvicorn
+gunicorn[uvicorn]
 MarkupSafe==3.0.2
 marshmallow==3.23.1
 oauthlib==3.2.2
