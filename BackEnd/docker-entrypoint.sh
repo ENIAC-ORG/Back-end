@@ -21,7 +21,7 @@ apps=(
 echo "--------------------------- Migrating the databse ---------------------------"
 for app in "${apps[@]}"; do
     echo "Running makemigrations for app: $app"
-    python manage.py makemigrations "$app"
+    python manage.py makemigrations "$app" --noinput
 done
 python manage.py migrate
 # python manage.py migrate --noinput
