@@ -2,9 +2,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from .models import Room, Message, RoomMembership, User
+from .models import Room, Message, RoomMembership
 from .serializers import RoomSerializer, MessageSerializer
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+# from accounts.models import User
+
 
 # API View for listing and creating rooms
 class RoomListCreateView(APIView):
@@ -16,6 +19,7 @@ class RoomListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
+        User = get_user_model()
         if not request.user.is_staff:
             return Response({"error": "Only admin can create rooms."}, status=status.HTTP_403_FORBIDDEN)
 
