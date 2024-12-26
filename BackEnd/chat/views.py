@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from .models import Room, Message, RoomMembership
-from .serializers import RoomSerializer, MessageSerializer, RoomMembershipSerializer
+from .models import Room, Message, RoomMembership, User
+from .serializers import RoomSerializer, MessageSerializer
 from django.shortcuts import get_object_or_404
 
 # API View for listing and creating rooms
@@ -22,7 +22,12 @@ class RoomListCreateView(APIView):
         serializer = RoomSerializer(data=request.data)
         if serializer.is_valid():
             room = serializer.save(created_by=request.user)
-            RoomMembership.objects.create(user=request.user, room=room, can_send_messages=True)
+
+            # Add all users to the room as members
+            all_users = User.objects.all()
+            memberships = [RoomMembership(user=user, room=room, can_send_messages=True) for user in all_users]
+            RoomMembership.objects.bulk_create(memberships)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
