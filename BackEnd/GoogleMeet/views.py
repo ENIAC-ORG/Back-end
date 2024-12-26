@@ -6,6 +6,9 @@ from google_auth_oauthlib.flow import Flow
 from reservation.models import Reservation
 from utils.google_api_helper import is_authorized, create_meet_event, save_tokens
 from utils.project_variables import GOOGLE_CLIENT_SECRETS_FILE, SCOPES
+import requests
+from google.auth.transport.requests import Request
+
 
 class GenerateGoogleMeetLinkView(APIView):
     def get(self, request, reservation_id):
@@ -62,6 +65,14 @@ class GoogleOAuthCallbackView(APIView):
             user_email = None
             if credentials.id_token and 'email' in credentials.id_token:
                 user_email = credentials.id_token['email']
+            else:
+                userinfo_endpoint = "https://openidconnect.googleapis.com/v1/userinfo"
+                response = requests.get(
+                    userinfo_endpoint,
+                    headers={"Authorization": f"Bearer {credentials.token}"}
+                )
+                user_info = response.json()
+                user_email = user_info.get("email")
             
             if not user_email:
                 return Response({"error": "Unable to retrieve email from Google OAuth."}, status=400)
