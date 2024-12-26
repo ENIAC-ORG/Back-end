@@ -3,10 +3,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.test import APITestCase
 from rest_framework import status
 from unittest.mock import patch
-from accounts.models import User
+from django.contrib.auth import get_user_model
+# from accounts.models import User
+
+User = get_user_model()
+
 from django.conf import settings
 from unittest.mock import patch
-from accounts.models import User
 import jwt
 from .utils import generate_tokens
 from jwt.exceptions import InvalidSignatureError

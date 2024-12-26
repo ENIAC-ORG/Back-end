@@ -1,6 +1,6 @@
 from typing import Any
 from django.db import models
-from accounts.models import User
+# from accounts.models import User
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError 
@@ -29,7 +29,7 @@ class Psychiatrist(models.Model ) :
         (TYPE_PSYCLOGICAL,"روان پزشکی")
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE , unique=True )
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE , unique=True )
     image = models.ImageField(upload_to='images/doctors/profile_pics', null=True,blank=True )  #, default='images/doctors/profile_pics/default.png')
     field = models.CharField( max_length=255, choices=CHOICES , default=TYPE_USER,null=True, blank= True)
     clinic_address = models.TextField(null=True, blank=True)  # Clinic address, allowing multiline text
@@ -70,7 +70,7 @@ class Psychiatrist(models.Model ) :
         super().save(*args, **kwargs)
 
 class Pationt( models.Model ) : 
-    user = models.ForeignKey(User, on_delete=models.CASCADE , unique=True )
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE , unique=True )
    # telegramAccount = models.OneToOneField(TelegramAccount , on_delete=models.CASCADE,null=True , blank=True ) 
     def get_fullname(self) :
         return str(self.user.firstname) + " " + str(self.user.lastname)

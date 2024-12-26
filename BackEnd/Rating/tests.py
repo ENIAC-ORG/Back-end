@@ -5,7 +5,11 @@ from unittest.mock import patch
 from django.conf import settings
 from .models import Pationt, Psychiatrist, Rating
 from reservation.models import Reservation
-from accounts.models import User
+from django.contrib.auth import get_user_model
+# from accounts.models import User
+
+User = get_user_model()
+
 from django.contrib.auth.hashers import make_password
 
 
