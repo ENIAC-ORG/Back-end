@@ -31,10 +31,8 @@ class PatientFormAPIView(APIView):
             {"id": 13, "text": "آیا شما خود را مذهبی می‌دانید؟", "type": "choice", "options": ["مذهبی", "غیرمذهبی", "فرقی نمی‌کند"]},
             {"id": 14, "text": "ترجیح شما برای جنسیت درمانگر چیست؟", "type": "choice", "options": ["زن", "مرد", "فرقی نمی‌کند"]},
             {"id": 15, "text": "ترجیح شما برای نوع جلسات چیست؟", "type": "choice", "options": ["حضوری", "مجازی", "فرقی نمی‌کند"]},
-            {"id": 16,"text": "چه روش درمانی را ترجیح می‌دهید؟","type": "multiple_choice","options": ["درمان شناختی-رفتاری (CBT)","آگاهی‌حاضر (Mindfulness)","درمان خانواده","درمان روان‌تحلیلی","درمان هنری","درمان گروهی"]
-}
-,
-            {"id": 17, "text": "چه روش‌هایی را برای ارتباط با درمانگر خود ترجیح می‌دهید؟ (مثل تماس تلفنی، ایمیل، یا پیام‌رسانی)", "type": "text"},
+            {"id": 16,"text": "چه روش درمانی را ترجیح می‌دهید؟","type": "multiple_choice","options": ["درمان شناختی-رفتاری (CBT)","آگاهی‌حاضر (Mindfulness)","درمان خانواده","درمان روان‌تحلیلی","درمان هنری","درمان گروهی"]},
+            {"id": 17, "text": "چه روش‌هایی را برای ارتباط با درمانگر خود ترجیح می‌دهید؟", "type": "multiple_choice", "options": ["تماس تلفنی", "ایمیل", "پیام‌رسانی"]},
             {"id": 18, "text": "چه انتظاری از درمانگر خود دارید؟", "type": "text"},
             {"id": 19, "text": "هر توضیح اضافی که می‌تواند کمک کند، در اینجا وارد کنید.", "type": "text"}
         ]
@@ -42,56 +40,54 @@ class PatientFormAPIView(APIView):
 
 
 
+    def post(self, request):
+        """
+        دریافت و ذخیره یا به‌روزرسانی پاسخ‌های فرم بیمار.
+        """
+        user = request.user
 
-def post(self, request):
-    """
-    دریافت و ذخیره یا به‌روزرسانی پاسخ‌های فرم بیمار.
-    """
-    user = request.user
+        # پردازش داده‌های ورودی و تبدیل به نوع مناسب
+        processed_data = {}
 
-    # پردازش داده‌های ورودی و تبدیل به نوع مناسب
-    processed_data = {}
+        for key, value in request.data.items():
+            if key in ["age", "stress_level", "sleep_hours"]:  # فیلدهای عددی
+                try:
+                    processed_data[key] = int(value)
+                except ValueError:
+                    return Response({"error": f"مقدار وارد شده برای فیلد {key} باید عدد صحیح باشد."}, status=status.HTTP_400_BAD_REQUEST)
 
-    for key, value in request.data.items():
-        if key in ["age", "stress_level", "sleep_hours"]:  # فیلدهای عددی
-            try:
-                processed_data[key] = int(value)  # تبدیل به عدد
-            except ValueError:
-                return Response({"error": f"مقدار فیلد {key} باید یک عدد باشد."}, status=status.HTTP_400_BAD_REQUEST)
+            elif key in ["energy_level", "suicidal_thoughts", "religion_preference", "therapist_gender_preference", "presentation_preference", "support_system", "treatment_duration"]:  # فیلدهایی با گزینه‌های از پیش تعریف شده
+                processed_data[key] = value
 
-        elif key in ["energy_level", "suicidal_thoughts", "religion_preference", "therapist_gender_preference", "presentation_preference"]:  # فیلدهایی با گزینه‌های از پیش تعریف شده
-            processed_data[key] = value
+            elif key in ["social_activities"]:  # فیلد بولین
+                processed_data[key] = True if value == "بله" else False
 
-        elif key == "social_activities":  # فیلد بولین
-            processed_data[key] = value.lower() == "بله"  # فرض بر این است که "بله" برای True باشد و "خیر" برای False
+            elif key in ["preferred_therapy_methods", "communication_preference", "symptoms"]:  # فیلدهای چند گزینه‌ای
+                if isinstance(value, list):
+                    processed_data[key] = value
+                else:
+                    try:
+                        processed_data[key] = json.loads(value) if value else []
+                    except json.JSONDecodeError:
+                        return Response({"error": f"مقدار وارد شده برای فیلد {key} باید لیست باشد."}, status=status.HTTP_400_BAD_REQUEST)
 
-        elif key in ["preferred_therapy_methods", "communication_preference", "symptoms"]:  # فیلدهای JSON
-            try:
-                processed_data[key] = json.loads(value) if value else []
-            except json.JSONDecodeError:
-                return Response({"error": f"مقدار فیلد {key} باید یک فرمت JSON معتبر باشد."}, status=status.HTTP_400_BAD_REQUEST)
+            elif key in ["additional_notes", "past_treatments", "current_medications", "physical_issues", "expectations"]:  # فیلدهای متنی
+                processed_data[key] = value
 
-        elif key == "treatment_duration":  # انتخاب نوع مدت زمان درمان
-            processed_data[key] = value
+            else:
+                return Response({"error": f"فیلد {key} غیرمجاز است."}, status=status.HTTP_400_BAD_REQUEST)
 
-        elif key in ["additional_notes", "past_treatments", "current_medications", "physical_issues", "expectations"]:  # فیلدهای متنی
-            processed_data[key] = value
+        try:
+            patient_form = PatientFormResponse.objects.get(user=user)
+            serializer = PatientFormResponseSerializer(patient_form, data=processed_data)
+        except PatientFormResponse.DoesNotExist:
+            serializer = PatientFormResponseSerializer(data=processed_data)
 
-        else:
-            processed_data[key] = value  # برای سایر فیلدها (در صورتی که فیلدی وجود داشته باشد که نیاز به پردازش خاصی ندارد)
+        if serializer.is_valid():
+            serializer.save(user=user)
+            return Response({"message": "اطلاعات فرم بیمار با موفقیت ذخیره یا به‌روزرسانی شد."}, status=status.HTTP_200_OK)
 
-    try:
-        patient_form = PatientFormResponse.objects.get(user=user)
-        serializer = PatientFormResponseSerializer(patient_form, data=processed_data)
-    except PatientFormResponse.DoesNotExist:
-        serializer = PatientFormResponseSerializer(data=processed_data)
-
-    if serializer.is_valid():
-        serializer.save(user=user)
-        return Response({"message": "اطلاعات فرم بیمار با موفقیت ذخیره یا به‌روزرسانی شد."}, status=status.HTTP_200_OK)
-    
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PsychologistFormAPIView(APIView):
     def get(self, request):
@@ -113,7 +109,7 @@ class PsychologistFormAPIView(APIView):
             {"id": 12,"text": " (بله یا خیر) آیا تجربه کار با بیمارانی که داروهای خاص مصرف می‌کنند را دارید؟","type": "boolean"},
             {"id": 13, "text": "آیا تمایل دارید با بیماران مذهبی یا غیرمذهبی کار کنید؟", "type": "choice", "options": ["مذهبی", "غیرمذهبی", "فرقی نمی‌کند"]},
             {"id": 14, "text": "آیا ترجیح خاصی برای جنسیت بیمار دارید؟", "type": "choice", "options": ["زن", "مرد", "فرقی نمی‌کند"]},
-            {"id": 15, "text": "ترجیح شما برای ارتباط با بیماران چیست؟ (مثلاً تماس تلفنی، ایمیل، پیام‌رسانی)", "type": "text"},
+            {"id": 15, "text": "ترجیح شما برای ارتباط با بیماران چیست؟","type": "multiple_choice", "options": ["تماس تلفنی", "ایمیل", "پیام‌رسانی"]},
             {"id": 16, "text": "هر توضیح اضافی که می‌خواهید اضافه کنید.", "type": "text"}
            
 
@@ -128,22 +124,34 @@ class PsychologistFormAPIView(APIView):
 
         # پردازش داده‌های ورودی و تبدیل به نوع مناسب
         processed_data = {}
-        
+
         for key, value in request.data.items():
-            if key in ["9", "10"]:  # فیلدهای بولین
-                processed_data[key] = value == "بله"
-            
-            elif key in ["7", "8"]:  # فیلدهای عددی
-                processed_data[key] = int(value)
-            
-            elif key == "specialties" or key == "therapy_methods" or key == "age_groups" or key == "communication_preference":  # فیلدهای JSON (چند گزینه‌ای)
-                processed_data[key] = json.loads(value) if value else []
-            
-            elif key in ["session_preference", "religion", "gender", "prefers_religious_patients", "prefers_gender"]:  # فیلدهای انتخابی
+            if key in ["physical_conditions_experience", "crisis_management", "medications_experience", "prefers_religious_patients"]:  # فیلدهای بولین
+                processed_data[key] = True if value == "بله" else False
+
+            elif key in ["experience_years", "max_sessions_per_week"]:  # فیلدهای عددی
+                try:
+                    processed_data[key] = int(value)
+                except ValueError:
+                    return Response({"error": f"مقدار وارد شده برای فیلد {key} باید عدد صحیح باشد."}, status=status.HTTP_400_BAD_REQUEST)
+
+            elif key in ["specialties", "therapy_methods", "age_groups", "communication_preference"]:  # فیلدهای چند گزینه‌ای
+                if isinstance(value, list):
+                    processed_data[key] = value
+                else:
+                    try:
+                        processed_data[key] = json.loads(value) if value else []
+                    except json.JSONDecodeError:
+                        return Response({"error": f"مقدار وارد شده برای فیلد {key} باید لیست باشد."}, status=status.HTTP_400_BAD_REQUEST)
+
+            elif key in ["session_preference", "religion", "gender", "prefers_gender", "treatment_duration"]:  # فیلدهای انتخابی
                 processed_data[key] = value
-            
+
+            elif key in ["additional_notes"]:  # فیلدهای متنی
+                processed_data[key] = value
+
             else:
-                processed_data[key] = value
+                return Response({"error": f"فیلد {key} غیرمجاز است."}, status=status.HTTP_400_BAD_REQUEST)
 
         # بررسی وجود یا عدم وجود فرم روانشناس برای کاربر
         try:
@@ -156,9 +164,8 @@ class PsychologistFormAPIView(APIView):
         if serializer.is_valid():
             serializer.save(user=user)
             return Response({"message": "اطلاعات فرم روانشناس با موفقیت ذخیره یا به‌روزرسانی شد."}, status=status.HTTP_200_OK)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
