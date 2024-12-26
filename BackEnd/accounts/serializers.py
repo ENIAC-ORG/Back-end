@@ -1,5 +1,11 @@
 from rest_framework import serializers
-from accounts.models import User , Pending_doctor
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
+from accounts.models import Pending_doctor
+# from accounts.models import User
+
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import password_validation
 from django.core import exceptions as exception
@@ -140,6 +146,7 @@ class LoginSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
+        User = get_user_model()
         email = attrs.get('email', None)
         password = attrs.get('password', None)
         if email and password:

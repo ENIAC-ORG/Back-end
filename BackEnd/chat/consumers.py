@@ -3,8 +3,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
-
-User = get_user_model()
+# from accounts.models import User
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -29,7 +28,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         message = data['message']
         user_email = data['email']
-
+        User = get_user_model()
         # Fetch user details asynchronously
         user = await sync_to_async(User.objects.get)(email=user_email)
         username = f"{user.firstname} {user.lastname}"  # Construct username as fullname

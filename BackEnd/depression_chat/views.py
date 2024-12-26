@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from accounts.models import User
+# from accounts.models import User
+from django.contrib.auth import get_user_model
+
 from rest_framework import status
 from rest_framework.response import Response
 from .models import Conversation, ConMessage
@@ -11,6 +13,10 @@ from counseling.models import Pationt
 import os
 import requests
 from pydub import AudioSegment
+from pydub.utils import which
+
+AudioSegment.converter = which("ffmpeg")
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -123,6 +129,8 @@ class DepressionChatView(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def create_new_conversation(self, request):
+
+        User = get_user_model()
         try:
             user = request.user
             if user.role != User.TYPE_USER:
@@ -259,6 +267,7 @@ class DepressionChatView(viewsets.ModelViewSet):
             )
 
     def Message(self, request, *args, **kwargs):
+        User = get_user_model()
         user = request.user
         if user.role != User.TYPE_USER:
             return Response(
@@ -273,7 +282,7 @@ class DepressionChatView(viewsets.ModelViewSet):
                 {"message": "There is no conversation with this ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        conversation = conversation.first()
+        
         try:
             patient = Pationt.objects.get(user=user)
         except Pationt.DoesNotExist:
@@ -292,74 +301,56 @@ class DepressionChatView(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        therapy_test = therapy_test.first()
-        if therapy_test.phq9 == None : 
+        if (timezone.now() - therapy_test.created_at).days >= 7:
             return Response(
                 {
-                    "message": "you did not take phq9 before, first take the phq9 test."
+                    "message": "you did not have any Tests more than 7 days before, first take the phq9 test."
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
-        if (timezone.now() - therapy_test.phq9_created_at).days >= 7:
-            return Response(
-                {
-                    "message": "You did not take the PHQ-9 test more than 7 days ago. Please take the PHQ-9 test first."
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+
+        user_msg = request.data.get("user_msg")
+        if conversation.name == "":
+            conversation.name = user_msg
 
         message = request.data.get("message")
-        if conversation.name == "":
-            conversation.name = message
-            conversation.save()
-        
-#         v_disorder = check_for_stress_in_text(
-#             message, disorder_model, disorder_tokenizer
-#         )
-#         v_emotion = predict_emotion_label(message, emotion_model, emotion_tokenizer)
+        v_disorder = check_for_stress_in_text(
+            message, disorder_model, disorder_tokenizer
+        )
+        v_emotion = predict_emotion_label(message, emotion_model, emotion_tokenizer)
 
-#         chats = ConMessage.objects.filter(conversation = conversation)
-# #        if not chats.exists():
-# #           chats = []
+        chats = ConMessage.objects.filter(conversation = conversation)
+        if not chats.exists():
+            chats = []
 
-#         chat = ConMessage.objects.create(
-#             user=user,
-#             conversation=conversation,
-#             message=message,
-#             timestamp=timezone.now(),
-#             emotion=v_emotion,
-#             disorder=v_disorder,
-#         )
-
+        chat = ConMessage.objects.create(
+            user=user,
+            conversation=conversation,
+            message=message,
+            timestamp=timezone.now(),
+            emotion=v_emotion,
+            disorder=v_disorder,
+        )
 
         for _ in range(5):
-          
+            # Get a response from OpenAI based on the chat history and current message
             response = self.ask_openai(chat, chat_history=chats, window_size=20)
-            logger.warning(f"***********************8 yths s sthe esopnse {response}")
-            try: 
-                validation = predict_validator_labels(
-                    response, validator_model, validator_tokenizer
-                )
-                if not validation:
-                    break
-            except : 
-                return Response(
-                {
-                    "message": "bad connection to open ai."
-                },
-                status=status.HTTP_400_BAD_REQUEST,
+            validation = predict_validator_labels(
+                response, validator_model, validator_tokenizer
             )
+            if not validation:
+                break
           
         chat.validation = validation
         chat.response = response
         chat.save()
-        return Response({"message": message, "response": response}, 
-                        status=status.HTTP_200_OK )
+        return Response({"message": message, "response": response})
+
 
 
     def Retrieve_conversation(self, request, *args, **kwargs):
         user = request.user
+        User = get_user_model()
         if user.role != User.TYPE_USER:
             return Response(
                 {"message": "This bot is only for patients."},
@@ -388,7 +379,8 @@ class DepressionChatView(viewsets.ModelViewSet):
         )
     
     def delete(self, request, *args, **kwargs):
-     
+        
+        User = get_user_model()
         user = request.user
         if user.role != User.TYPE_USER:
             return Response(
@@ -421,6 +413,7 @@ class DepressionChatView(viewsets.ModelViewSet):
     
     def Retrieve_all_conversations(self, request, *args, **kwargs):
         user = request.user
+        User = get_user_model()
         if user.role != User.TYPE_USER:
             return Response(
                 {"message": "This bot is only for patients."},

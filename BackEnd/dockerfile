@@ -20,7 +20,10 @@ ENV VIRTUAL_ENV=/eniac_venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 ENV PYTHONUNBUFFERED=1
-RUN apt-get install -y netcat 
+RUN apt-get update && apt-get install -y \
+    netcat \
+    ffmpeg 
+    
 # Copy project
 COPY . /app/
 
