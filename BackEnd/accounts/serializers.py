@@ -146,6 +146,7 @@ class LoginSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
+        User = get_user_model()
         email = attrs.get('email', None)
         password = attrs.get('password', None)
         if email and password:

@@ -5,8 +5,6 @@ from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
 # from accounts.models import User
 
-User = get_user_model()
-
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
@@ -30,7 +28,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         message = data['message']
         user_email = data['email']
-
+        User = get_user_model()
         # Fetch user details asynchronously
         user = await sync_to_async(User.objects.get)(email=user_email)
         username = f"{user.firstname} {user.lastname}"  # Construct username as fullname
