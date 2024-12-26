@@ -2,15 +2,14 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from unittest.mock import patch
+from django.contrib.auth.hashers import make_password
 from django.conf import settings
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from .models import Pationt, Psychiatrist, Rating
 from reservation.models import Reservation
-from django.contrib.auth import get_user_model
 # from accounts.models import User
 
-User = get_user_model()
-
-from django.contrib.auth.hashers import make_password
 
 
 
