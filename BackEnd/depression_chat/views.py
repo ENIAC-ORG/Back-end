@@ -11,6 +11,10 @@ from counseling.models import Pationt
 import os
 import requests
 from pydub import AudioSegment
+from pydub.utils import which
+
+AudioSegment.converter = which("ffmpeg")
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
