@@ -10,26 +10,23 @@ class PatientFormResponseSerializer(serializers.ModelSerializer):
             'religion_preference', 'treatment_duration', 'stress_level',
             'current_medications', 'past_treatments', 'suicidal_thoughts',
             'physical_issues', 'sleep_hours', 'energy_level',
-            'social_activities', 'expectations', 'additional_notes'
+            'social_activities', 'support_system', 'expectations', 'additional_notes'
         ]
-        
-    # Optional: If the symptoms, preferred_therapy_methods, and communication_preference are lists/dictionaries
-    # you can validate them as such.
+
     def validate_symptoms(self, value):
         if not isinstance(value, list):
             raise serializers.ValidationError("Symptoms must be a list.")
         return value
 
     def validate_preferred_therapy_methods(self, value):
-        if not isinstance(value, list):
+        if value is not None and not isinstance(value, list):
             raise serializers.ValidationError("Preferred therapy methods must be a list.")
         return value
-    
+
     def validate_communication_preference(self, value):
-        if not isinstance(value, list):
+        if value is not None and not isinstance(value, list):
             raise serializers.ValidationError("Communication preferences must be a list.")
         return value
-
 
 
 class PsychologistFormResponseSerializer(serializers.ModelSerializer):
@@ -38,11 +35,11 @@ class PsychologistFormResponseSerializer(serializers.ModelSerializer):
         fields = [
             'specialties', 'therapy_methods', 'age_groups', 'session_preference',
             'communication_preference', 'religion', 'gender', 'experience_years',
-            'max_sessions_per_week', 'prefers_religious_patients', 'prefers_gender',
-            'physical_conditions_experience', 'crisis_management', 'additional_notes'
+            'max_sessions_per_week', 'treatment_duration', 'prefers_religious_patients',
+            'prefers_gender', 'physical_conditions_experience', 'crisis_management',
+            'medications_experience', 'additional_notes'
         ]
-    
-    # Optional: If the specialties, therapy_methods, age_groups, etc. are lists, validate them
+
     def validate_specialties(self, value):
         if not isinstance(value, list):
             raise serializers.ValidationError("Specialties must be a list.")
@@ -59,6 +56,6 @@ class PsychologistFormResponseSerializer(serializers.ModelSerializer):
         return value
 
     def validate_communication_preference(self, value):
-        if not isinstance(value, list):
+        if value is not None and not isinstance(value, list):
             raise serializers.ValidationError("Communication preferences must be a list.")
         return value
