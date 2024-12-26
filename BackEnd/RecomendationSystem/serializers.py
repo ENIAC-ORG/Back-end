@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import PatientFormResponse, PsychologistFormResponse
+from .models import PatientFormResponse,PsychologistFormResponse
 
 class PatientFormResponseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,6 +12,25 @@ class PatientFormResponseSerializer(serializers.ModelSerializer):
             'physical_issues', 'sleep_hours', 'energy_level',
             'social_activities', 'expectations', 'additional_notes'
         ]
+        
+    # Optional: If the symptoms, preferred_therapy_methods, and communication_preference are lists/dictionaries
+    # you can validate them as such.
+    def validate_symptoms(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Symptoms must be a list.")
+        return value
+
+    def validate_preferred_therapy_methods(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Preferred therapy methods must be a list.")
+        return value
+    
+    def validate_communication_preference(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Communication preferences must be a list.")
+        return value
+
+
 
 class PsychologistFormResponseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,3 +41,24 @@ class PsychologistFormResponseSerializer(serializers.ModelSerializer):
             'max_sessions_per_week', 'prefers_religious_patients', 'prefers_gender',
             'physical_conditions_experience', 'crisis_management', 'additional_notes'
         ]
+    
+    # Optional: If the specialties, therapy_methods, age_groups, etc. are lists, validate them
+    def validate_specialties(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Specialties must be a list.")
+        return value
+
+    def validate_therapy_methods(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Therapy methods must be a list.")
+        return value
+
+    def validate_age_groups(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Age groups must be a list.")
+        return value
+
+    def validate_communication_preference(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Communication preferences must be a list.")
+        return value
