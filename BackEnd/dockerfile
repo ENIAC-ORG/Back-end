@@ -27,11 +27,19 @@ RUN apt-get update && apt-get install -y \
 # Copy project
 COPY . /app/
 
+COPY deploy deploy
+
+COPY deploy/gunicorn.conf /etc/supervisor/conf.d/gunicorn.conf
+COPY deploy/daphne.conf /etc/supervisor/conf.d/daphne.conf
+
+RUN mkdir /logs
+
 #RUN chmod +x docker-entrypoint.sh 
 #RUN chmod +x wait-for.sh
 # COPY data.sql data/
 EXPOSE 8000
 EXPOSE 8001
+
 
 RUN chmod 755 /app/deploy/start_daphne.sh
 RUN sed -i 's/\r$//' /app/deploy/start_daphne.sh
