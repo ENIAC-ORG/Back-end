@@ -27,24 +27,11 @@ django.setup()
 from chat.consumers import ChatConsumer 
 
 
-# # Initialize the Django ASGI application
-# django_asgi_app = get_asgi_application()
-
-# # Define the ASGI application
-# application = ProtocolTypeRouter({
-#     "http": django_asgi_app,  # Handles HTTP requests
-#     "websocket": AuthMiddlewareStack(
-#         URLRouter(
-#             [path("ws/chat/<str:room_name>/", ChatConsumer.as_asgi())]
-#         )
-#     ),
-# })
-
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
         URLRouter([
-            [path("ws/chat/<str:room_name>/", ChatConsumer.as_asgi())]
+            path("ws/chat/<str:room_name>/", ChatConsumer.as_asgi()),
         ])
     ),
 })
