@@ -79,6 +79,6 @@ class GoogleOAuthCallbackView(APIView):
 
             save_tokens(user_email, credentials)
 
-            return redirect(f'/generate-meet-link/{reservation_id}/')
+            return redirect(f'https://eniacgroup.ir/generate-meet-link/{reservation_id}/')
         except Exception as e:
             return Response({"error": str(e)}, status=500)
