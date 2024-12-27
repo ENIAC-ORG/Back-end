@@ -2,7 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 
-from .models import Room, Message, RoomMembership
+#from .models import Room, Message, RoomMembership
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -22,6 +22,7 @@ def get_user_from_token(token):
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        from .models import Room, Message, RoomMembership
         # دریافت `room_id` از آدرس
         self.room_id = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = f'chat_{self.room_id}'
@@ -86,6 +87,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         # دریافت داده‌های پیام
+        from .models import Room, Message, RoomMembership
         data = json.loads(text_data)
         message = data.get('message')
         token = data.get('token')
