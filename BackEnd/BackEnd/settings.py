@@ -125,6 +125,7 @@ INSTALLED_APPS = [
     "TherapyTests",
     "Doctorpanel",
     "Rating",
+    "daphne",
     "channels",
     "chat",
     "depression_chat",
