@@ -18,16 +18,24 @@ import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BackEnd.settings')
 django.setup() 
-# Initialize the Django ASGI application
-django_asgi_app = get_asgi_application()
+# # Initialize the Django ASGI application
+# django_asgi_app = get_asgi_application()
 
-# Define the ASGI application
+# # Define the ASGI application
+# application = ProtocolTypeRouter({
+#     "http": django_asgi_app,  # Handles HTTP requests
+#     "websocket": AuthMiddlewareStack(
+#         URLRouter(
+#             [path("ws/chat/<str:room_name>/", ChatConsumer.as_asgi())]
+#         )
+#     ),
+# })
+
 application = ProtocolTypeRouter({
-    "http": django_asgi_app,  # Handles HTTP requests
+    "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
-        URLRouter(
+        URLRouter([
             [path("ws/chat/<str:room_name>/", ChatConsumer.as_asgi())]
-        )
+        ])
     ),
 })
-
