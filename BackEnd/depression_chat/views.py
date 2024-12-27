@@ -98,27 +98,45 @@ class ProcessWavVoiceView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # ذخیره موقت فایل برای بررسی نوع
-        with tempfile.NamedTemporaryFile(delete=True) as temp_file:
-            for chunk in voice_file.chunks():
-                temp_file.write(chunk)
-            temp_file.seek(0)
+        # ذخیره موقت فایل برای پردازش
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_wav_file:
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                # ذخیره فایل آپلود شده
+                for chunk in voice_file.chunks():
+                    temp_file.write(chunk)
+                temp_file.seek(0)
 
-            # بررسی نوع فایل با استفاده از pydub
-            try:
-                audio = AudioSegment.from_file(temp_file.name, format="wav")
-            except Exception:
-                return Response(
-                    {"message": "Only valid WAV files are allowed."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                # شناسایی و تبدیل به WAV
+                try:
+                    audio = AudioSegment.from_file(temp_file.name)
+                    audio.export(temp_wav_file.name, format="wav")  # تبدیل به WAV
+                except Exception as e:
+                    return Response(
+                        {"message": f"Error converting audio file: {str(e)}"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            # مسیر فایل WAV
+            wav_file_path = temp_wav_file.name
 
         # پردازش فایل صوتی به متن
-        processed_text = process_audio_to_text(voice_file)
+        try:
+            processed_text = process_audio_to_text(wav_file_path)
+        except Exception as e:
+            return Response(
+                {"message": f"Error processing audio file: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # حذف فایل موقت WAV (اختیاری)
+        try:
+            os.remove(wav_file_path)
+        except Exception:
+            pass
 
         return Response(
             {
-                "message": "WAV file processed successfully.",
+                "message": "Audio file processed successfully.",
                 "processed_text": processed_text
             },
             status=status.HTTP_200_OK
