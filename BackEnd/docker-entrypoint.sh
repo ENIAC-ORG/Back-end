@@ -35,8 +35,8 @@ echo "--------------------------- Set Admin ---------------------------"
 DJANGO_SUPERUSER_PASSWORD=eniac@1403 python manage.py createsuperuser --no-input  --email=eniakgroupiust@gmail.com
 
 echo "--------------------------- Starting the Server ---------------------------"
-# python -u manage.py runserver 0.0.0.0:8000
-gunicorn BackEnd.asgi:application -w 1 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --log-level debug
+python -u manage.py runserver 0.0.0.0:8000
+#gunicorn BackEnd.asgi:application -w 1 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --log-level debug
 
 sleep 3
 echo "--------------------------- Starting the asgi server ---------------------------"

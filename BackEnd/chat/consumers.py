@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
-from rest_framework_simplejwt.tokens import AccessToken
+
 from .models import Room, Message, RoomMembership
 from django.contrib.auth import get_user_model
 
@@ -10,6 +10,7 @@ User = get_user_model()
 # Helper function to get user from token
 def get_user_from_token(token):
     try:
+        from rest_framework_simplejwt.tokens import AccessToken
         decoded_data = AccessToken(token)
         user_id = decoded_data['user_id']
         user = User.objects.get(id=user_id)
