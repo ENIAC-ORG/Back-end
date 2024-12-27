@@ -34,7 +34,7 @@ EXPOSE 8000
 EXPOSE 8001
 
 RUN chmod 755 /app/deployment/start_daphne.sh
-RUN sed -i 's/\r$//' /app/deployment/start_daphne.sh
+RUN sed -i 's/\r$//' /app/deploy/start_daphne.sh
 
 # CMD [ "python" , "manage.py" , "runserver" ]
 
