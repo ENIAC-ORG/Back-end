@@ -29,7 +29,6 @@ COPY . /app/
 
 COPY deploy deploy
 
-COPY deploy/gunicorn.conf /etc/supervisor/conf.d/gunicorn.conf
 COPY deploy/daphne.conf /etc/supervisor/conf.d/daphne.conf
 
 RUN mkdir /logs
