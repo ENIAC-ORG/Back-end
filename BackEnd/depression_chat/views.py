@@ -29,20 +29,20 @@ import tempfile
 import numpy as np
 import os
 from django.utils import timezone
-# from .disorder_detector.stress_detector import (
-#     check_for_stress_in_text,
-#     load_stress_detector_model_tokenizer,
-# )
-# from .emotion.emotion_detection import (
-#     load_emotion_detector_model_tokenizer,
-#     predict_emotion_label,
-#     predict_emotion_of_texts,
-#     label_dict,
-# )
-# from .message_validator.message_validator import (
-#     load_validator_model_and_tokenizer,
-#     predict_validator_labels,
-# )
+from .disorder_detector.stress_detector import (
+    check_for_stress_in_text,
+    load_stress_detector_model_tokenizer,
+)
+from .emotion.emotion_detection import (
+    load_emotion_detector_model_tokenizer,
+    predict_emotion_label,
+    predict_emotion_of_texts,
+    label_dict,
+)
+from .message_validator.message_validator import (
+    load_validator_model_and_tokenizer,
+    predict_validator_labels,
+)
 from dotenv import load_dotenv
 
 import logging
@@ -50,9 +50,9 @@ import logging
 logger = logging.getLogger(__name__)
 load_dotenv()
 
-# validator_model, validator_tokenizer = load_validator_model_and_tokenizer()
-# emotion_model, emotion_tokenizer = load_emotion_detector_model_tokenizer()
-# disorder_tokenizer, disorder_model = load_stress_detector_model_tokenizer()
+validator_model, validator_tokenizer = load_validator_model_and_tokenizer()
+emotion_model, emotion_tokenizer = load_emotion_detector_model_tokenizer()
+disorder_tokenizer, disorder_model = load_stress_detector_model_tokenizer()
 
 def is_wav_file(file_path):
     try:

@@ -40,7 +40,7 @@ echo "--------------------------- Starting the Server --------------------------
 #gunicorn -b :8000 BackEnd.asgi:application
 #sleep 3
 #echo "--------------------------- Starting the asgi server ---------------------------"
-Uvicorn BackEnd.asgi:application --host 0.0.0.0 --port 8000
+uvicorn BackEnd.asgi:application --host 0.0.0.0 --port 8000
 #daphne -b 0.0.0.0 -p 8001 BackEnd.asgi:application
 
 # gunicorn BackEnd.asgi:application --bind 0.0.0.0:8000 --log-level debug
