@@ -60,11 +60,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         for message in messages:
             await self.send(text_data=json.dumps({
-                'message': message.content,
-                'username': f"{message.user.firstname} {message.user.lastname}",
-                'timestamp': message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'id': message.id,  # شناسه پیام
+                'content': message.content,  # محتوای پیام
+                'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S'),  # زمان ایجاد
+                'firstname': message.user.firstname,  # نام کاربر
+                'lastname': message.user.lastname,  # نام خانوادگی کاربر
                 'is_self': user.id == message.user.id  # بررسی اینکه آیا پیام متعلق به کاربر است
             }))
+
 
         # اضافه کردن کاربر به گروه
         await self.channel_layer.group_add(
@@ -117,24 +120,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': message,
-                'username': f"{user.firstname} {user.lastname}",
-                'sender_email': user.email,  # ایمیل برای بررسی مالکیت پیام ارسال می‌شود
-                'timestamp': new_message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'id': new_message.id,  # شناسه پیام
+                'content': new_message.content,  # محتوای پیام
+                'created_at': new_message.created_at.strftime('%Y-%m-%d %H:%M:%S'),  # زمان ایجاد
+                'firstname': user.firstname,  # نام کاربر
+                'lastname': user.lastname,  # نام خانوادگی کاربر
+                'is_self': user.id == new_message.user.id  # بررسی اینکه آیا پیام متعلق به کاربر است
             }
         )
 
+
     async def chat_message(self, event):
         # دریافت پیام برای ارسال به کاربران
-        message = event['message']
-        username = event['username']
-        sender_email = event['sender_email']
-        timestamp = event['timestamp']
+        message = event['content']
+        username = f"{event['firstname']} {event['lastname']}"
+        timestamp = event['created_at']
+        is_self = event['is_self']
 
         # ارسال پیام به کاربر
         await self.send(text_data=json.dumps({
-            'message': message,
-            'username': username,
-            'timestamp': timestamp,
-            'is_self': self.scope["user"].email == sender_email  # بررسی اینکه آیا پیام متعلق به کاربر است
+            'id': event['id'],  # شناسه پیام
+            'content': message,  # محتوای پیام
+            'created_at': timestamp,  # زمان ایجاد
+            'firstname': event['firstname'],  # نام کاربر
+            'lastname': event['lastname'],  # نام خانوادگی کاربر
+            'is_self': is_self  # بررسی اینکه آیا پیام متعلق به کاربر است
         }))
+
