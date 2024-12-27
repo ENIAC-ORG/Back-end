@@ -36,12 +36,12 @@ DJANGO_SUPERUSER_PASSWORD=eniac@1403 python manage.py createsuperuser --no-input
 
 echo "--------------------------- Starting the Server ---------------------------"
 #python -u manage.py runserver 0.0.0.0:8000
-#gunicorn BackEnd.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --log-level debug
+gunicorn BackEnd.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --log-level debug
 #gunicorn -b :8000 BackEnd.asgi:application
+#uvicorn BackEnd.asgi:application --host 0.0.0.0 --port 8000
 #sleep 3
-#echo "--------------------------- Starting the asgi server ---------------------------"
-uvicorn BackEnd.asgi:application --host 0.0.0.0 --port 8000
-#daphne -b 0.0.0.0 -p 8001 BackEnd.asgi:application
+echo "--------------------------- Starting the asgi server ---------------------------"
+daphne -b 0.0.0.0 -p 8001 BackEnd.asgi:application
 
 # gunicorn BackEnd.asgi:application --bind 0.0.0.0:8000 --log-level debug
 
