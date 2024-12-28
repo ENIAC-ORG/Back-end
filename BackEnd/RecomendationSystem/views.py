@@ -9,6 +9,7 @@ from rest_framework import status
 from .models import PatientFormResponse, PsychologistFormResponse
 from .matching import match_patient_to_psychologists
 import json
+from counseling.models import Psychiatrist
 
 class PatientFormAPIView(APIView):
     def get(self, request):
@@ -193,7 +194,7 @@ class MatchPatientToPsychologistsAPIView(APIView):
         # ساخت پاسخ
         result = [
             {
-                "psychologist_id": match["psychologist"].user.id,
+                "psychologist_id": Psychiatrist.objects.get(user_id=match["psychologist"].user.id).id,
                 "psychologist_name": match["psychologist"].user.firstname + " " + match["psychologist"].user.lastname,
                 "match_score": match["match_score"],
                 "reasons": match["reasons"],
