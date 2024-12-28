@@ -96,7 +96,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         user = await sync_to_async(get_user_from_token)(token)
         print( " this user   : " , user )
-    
+        print( " this message : " , message )
         if not user:
             await self.send(text_data=json.dumps({
                 'error': 'Invalid token. User not found.'
