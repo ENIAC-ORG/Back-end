@@ -8,16 +8,16 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 # Helper function to get user from token
-def get_user_from_token(token):
-    try:
-        from rest_framework_simplejwt.tokens import AccessToken
-        decoded_data = AccessToken(token)
-        user_id = decoded_data['user_id']
-        user = User.objects.get(id=user_id)
-        return user
-    except Exception as e:
-        print(f"Error decoding token: {e}")
-        return None
+# def get_user_from_token(token):
+#     try:
+#         from rest_framework_simplejwt.tokens import AccessToken
+#         decoded_data = AccessToken(token)
+#         user_id = decoded_data['user_id']
+#         user = User.objects.get(id=user_id)
+#         return user
+#     except Exception as e:
+#         print(f"Error decoding token: {e}")
+#         return None
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -33,15 +33,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        token = self.scope.get('query_string', None)
-        if token:
-            token = token.decode()  # برای استفاده از token به صورت رشته باید decode کنید
+        u_email = self.scope.get('query_string', None)
+        if u_email:
+            u_email = u_email.decode()  # برای استفاده از ایمیل به صورت رشته باید decode کنید
 
-        if not token:
+        if not u_email:
             await self.close()
             return
+        User = get_user_model()
+        # Fetch user details asynchronously
+        user = await sync_to_async(User.objects.get)(email=u_email)
         # بررسی عضویت کاربر در اتاق
-        user = await sync_to_async(get_user_from_token)(token)
         if not user:
             await self.send(text_data=json.dumps({
                 'error': 'Invalid token. User not found.'
@@ -90,16 +92,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from .models import Room, Message, RoomMembership
         data = json.loads(text_data)
         message = data.get('message')
-        token = data.get('token')
-        print( "this is the token " , token)
-        # دریافت کاربر از توکن
+        user_email = data.get('email')
+        User = get_user_model()
+        # Fetch user details asynchronously
+        user = await sync_to_async(User.objects.get)(email=user_email)
 
-        user = await sync_to_async(get_user_from_token)(token)
+        # دریافت کاربر از توکن
         print( " this user   : " , user )
         print( " this message : " , message )
         if not user:
             await self.send(text_data=json.dumps({
-                'error': 'Invalid token. User not found.'
+                'error': 'Invalid email. User not found.'
             }))
             return
 
