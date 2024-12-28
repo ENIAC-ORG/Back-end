@@ -118,7 +118,7 @@ def match_patient_to_psychologists(patient, psychologists):
 
         # 8. تطبیق مدت زمان درمان
         if patient.treatment_duration:
-            if patient.treatment_duration == psychologist.treatment_duration_preference:
+            if patient.treatment_duration == psychologist.treatment_duration:
                 match_score += WEIGHTS["treatment_duration"]
                 reasons.append(f"تطبیق در مدت زمان درمان: {patient.treatment_duration}")
 
