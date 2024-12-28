@@ -123,7 +123,7 @@ def match_patient_to_psychologists(patient, psychologists):
                 reasons.append(f"تطبیق در مدت زمان درمان: {patient.treatment_duration}")
 
         # 9. تطبیق داروهای خاص
-        if patient.medications and psychologist.medication_experience:
+        if patient.current_medications and psychologist.medication_experience:
             match_score += WEIGHTS["medications"]
             reasons.append("روانشناس تجربه مدیریت داروهای خاص دارد")
 
