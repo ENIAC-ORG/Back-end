@@ -123,7 +123,7 @@ def match_patient_to_psychologists(patient, psychologists):
                 reasons.append(f"تطبیق در مدت زمان درمان: {patient.treatment_duration}")
 
         # 9. تطبیق داروهای خاص
-        if patient.current_medications and psychologist.medication_experience:
+        if patient.current_medications and psychologist.medications_experience:
             match_score += WEIGHTS["medications"]
             reasons.append("روانشناس تجربه مدیریت داروهای خاص دارد")
 
@@ -133,7 +133,7 @@ def match_patient_to_psychologists(patient, psychologists):
             reasons.append("روانشناس تجربه مدیریت خطر خودکشی دارد")
 
         # 11. تطبیق نوع ارتباط
-        if patient.communication_preference in psychologist.communication_preferences or psychologist.communication_preferences == "هر دو":
+        if patient.communication_preference in psychologist.communication_preference or psychologist.communication_preference == "هر دو":
             match_score += WEIGHTS["communication_preference"]
             reasons.append("تطبیق در نوع ارتباط")
 
@@ -147,7 +147,7 @@ def match_patient_to_psychologists(patient, psychologists):
                 reasons.append("روانشناس تجربه کار با بیماران با انرژی زیاد دارد (ADHD)")
 
         # 13. تجربه کار با مشکلات جسمی
-        if patient.physical_conditions and psychologist.physical_condition_experience:
+        if patient.physical_issues and psychologist.physical_conditions_experience:
             match_score += WEIGHTS["physical_conditions"]
             reasons.append("روانشناس تجربه کار با مشکلات جسمی دارد")
 
