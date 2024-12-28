@@ -100,7 +100,7 @@ class PsychologistFormAPIView(APIView):
             {"id": 3, "text": "با کدام گروه‌های سنی کار می‌کنید؟", "type": "multiple_choice", "options": ["کودکان", "نوجوانان", "بزرگ‌سالان", "سالمندان"]},
             {"id": 4, "text": "چه نوع جلساتی را ارائه می‌دهید؟", "type": "choice", "options": ["حضوری", "مجازی", "هر دو"]},
             {"id": 5, "text": "آیا شما خود را مذهبی می‌دانید؟", "type": "choice", "options": ["مذهبی", "غیرمذهبی", "فرقی نمی‌کند"]},
-            {"id": 6, "text": "جنسیت شما چیست؟", "type": "choice", "options": ["زن", "مرد", "فرقی نمی‌کند"]},
+            {"id": 6, "text": "جنسیت شما چیست؟", "type": "choice", "options": ["زن", "مرد"]},
             {"id": 7, "text": "چند سال سابقه کاری دارید؟", "type": "number"},
             {"id": 8, "text": "حداکثر تعداد جلسات در هفته که می‌توانید ارائه دهید؟", "type": "number"},
             {"id": 9, "text": "حداکثر مدت زمان درمان که می‌توانید ارائه دهید چیست؟","type": "choice","options": ["کوتاه مدت", "میانه مدت", "بلند مدت"]},
@@ -126,7 +126,7 @@ class PsychologistFormAPIView(APIView):
         processed_data = {}
 
         for key, value in request.data.items():
-            if key in ["physical_conditions_experience", "crisis_management", "medications_experience", "prefers_religious_patients"]:  # فیلدهای بولین
+            if key in ["physical_conditions_experience", "crisis_management", "medications_experience"]:  # فیلدهای بولین
                 processed_data[key] = True if value == "بله" else False
 
             elif key in ["experience_years", "max_sessions_per_week"]:  # فیلدهای عددی
@@ -144,7 +144,7 @@ class PsychologistFormAPIView(APIView):
                     except json.JSONDecodeError:
                         return Response({"error": f"مقدار وارد شده برای فیلد {key} باید لیست باشد."}, status=status.HTTP_400_BAD_REQUEST)
 
-            elif key in ["session_preference", "religion", "gender", "prefers_gender", "treatment_duration"]:  # فیلدهای انتخابی
+            elif key in ["session_preference", "religion", "gender", "prefers_gender", "treatment_duration", "prefers_religious_patients"]:  # فیلدهای انتخابی
                 processed_data[key] = value
 
             elif key in ["additional_notes"]:  # فیلدهای متنی
