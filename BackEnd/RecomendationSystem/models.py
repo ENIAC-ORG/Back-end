@@ -48,7 +48,7 @@ class PsychologistFormResponse(models.Model):
     communication_preference = models.JSONField(blank=True, null=True)  # روش‌های ارتباطی
     
     religion = models.CharField(max_length=50, choices=[("مذهبی", "مذهبی"), ("غیرمذهبی", "غیرمذهبی"), ("فرقی نمی‌کند", "فرقی نمی‌کند")])  # مذهبی یا غیرمذهبی بودن
-    gender = models.CharField(max_length=50, choices=[("زن", "زن"), ("مرد", "مرد"), ("فرقی نمی‌کند", "فرقی نمی‌کند")])  # جنسیت
+    gender = models.CharField(max_length=50, choices=[("زن", "زن"), ("مرد", "مرد")])  # جنسیت
     
     experience_years = models.IntegerField()  # سابقه کاری
     max_sessions_per_week = models.IntegerField(blank=True, null=True)  # حداکثر تعداد جلسات
