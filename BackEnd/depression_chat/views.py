@@ -115,8 +115,8 @@ def process_audio_to_text(audio_file):
     return transcription
 
 # Initialize the processor and model
-processor = Wav2Vec2Processor.from_pretrained("onatasgrosman/wav2vec2-large-xlsr-53-persian")
-model = Wav2Vec2ForCTC.from_pretrained("onatasgrosman/wav2vec2-large-xlsr-53-persian")
+processor = Wav2Vec2Processor.from_pretrained("jonatasgrosman/wav2vec2-large-xlsr-53-persian")
+model = Wav2Vec2ForCTC.from_pretrained("jonatasgrosman/wav2vec2-large-xlsr-53-persian")
 
 class ProcessWavVoiceView(APIView):
     def post(self, request, *args, **kwargs):
