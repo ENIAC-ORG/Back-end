@@ -109,3 +109,14 @@ class ToggleRoomVisibilityView(APIView):
         room_membership.save()
 
         return Response({"message": "Room visibility toggled."}, status=status.HTTP_200_OK)
+
+class GetUserEmailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # کاربر احراز هویت شده
+        user = request.user
+        # ایمیل کاربر را از شیء کاربری دریافت می‌کنیم
+        email = user.email
+        # ایمیل را در پاسخ ارسال می‌کنیم
+        return Response({"email": email}, status=status.HTTP_200_OK)

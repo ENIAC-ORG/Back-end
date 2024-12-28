@@ -8,4 +8,5 @@ urlpatterns = [
     path('rooms/<int:room_id>/', views.DeleteRoomView.as_view(), name='delete_room'),  # حذف گروه
     path('rooms/<int:room_id>/update/', views.UpdateRoomView.as_view(), name='update_room'),  # ویرایش گروه
     path('rooms/<int:room_id>/toggle-visibility/', views.ToggleRoomVisibilityView.as_view(), name='toggle_room_visibility'),  # مخفی کردن گروه
+    path('get-user-email/', views.GetUserEmailView.as_view(), name='get-user-email'),
 ]
