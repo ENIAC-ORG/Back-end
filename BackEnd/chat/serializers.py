@@ -13,7 +13,7 @@ class MessageSerializer(serializers.ModelSerializer):
     firstname = serializers.SerializerMethodField()
     lastname = serializers.SerializerMethodField()
     is_self = serializers.SerializerMethodField()
-
+    created_at = serializers.SerializerMethodField()  # Add custom field for formatted date
     class Meta:
         model = Message
         fields = ['id', 'content', 'created_at', 'firstname', 'lastname', 'is_self']
@@ -28,6 +28,10 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_is_self(self, obj):
         request = self.context.get('request', None)
         return request.user == obj.user if request else False
+
+    def get_created_at(self, obj):
+        # فرمت‌دهی به تاریخ به صورت '%Y-%m-%d %H:%M:%S'
+        return obj.created_at.strftime('%Y-%m-%d %H:%M:%S') if obj.created_at else None
 
 # Serializer for Room Memberships
 class RoomMembershipSerializer(serializers.ModelSerializer):
