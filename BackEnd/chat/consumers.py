@@ -50,9 +50,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }))
             return
 
-        is_member = await sync_to_async(RoomMembership.objects.filter)(
-            user=user, room_id=self.room_id
-        ).exists()
+        is_member = await sync_to_async(
+            lambda: RoomMembership.objects.filter(
+            user=user, room_id=self.room_id).exists()
+            )()
 
         if not is_member:
             await self.close()
@@ -61,17 +62,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # ارسال پیام‌های قبلی به کاربر
         room = await sync_to_async(Room.objects.get)(id=self.room_id)
         messages = await sync_to_async(list)(room.messages.order_by('created_at').all())
-
+        
         for message in messages:
-            await self.send(text_data=json.dumps({
-                'id': message.id,  # شناسه پیام
-                'content': message.content,  # محتوای پیام
-                'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S'),  # زمان ایجاد
-                'firstname': message.user.firstname,  # نام کاربر
-                'lastname': message.user.lastname,  # نام خانوادگی کاربر
-                'is_self': user.id == message.user.id  # بررسی اینکه آیا پیام متعلق به کاربر است
-            }))
-
+            if message:  # Check if the message exists
+                await self.send(text_data=json.dumps({
+                    'id': message.id if message.id else None,  # Check if message ID exists
+                    'content': message.content if message.content else '',  # Fallback to empty string if content is None
+                    'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else None,  # Check if created_at exists
+                    'firstname': message.user.firstname if message.user and message.user.firstname else None,  # Check if user and firstname exist
+                    'lastname': message.user.lastname if message.user and message.user.lastname else None,  # Check if user and lastname exist
+                    'is_self': user.id == message.user.id if message.user else False  # Validate user association
+                }))
 
         # اضافه کردن کاربر به گروه
         await self.channel_layer.group_add(
