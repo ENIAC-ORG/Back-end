@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir /app/models
 # Copy project
 COPY . /app/
-
+RUN pip install 'uvicorn[standard]'
 COPY deploy deploy
 
 COPY deploy/daphne.conf /etc/supervisor/conf.d/daphne.conf

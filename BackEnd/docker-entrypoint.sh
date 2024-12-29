@@ -41,6 +41,6 @@ python -u manage.py runserver 0.0.0.0:8000
 #uvicorn BackEnd.asgi:application --host 0.0.0.0 --port 8000
 #sleep 3
 echo "--------------------------- Starting the asgi server ---------------------------"
-daphne -b 0.0.0.0 -p 8001 BackEnd.asgi:application
+#daphne -b 0.0.0.0 -p 8001 BackEnd.asgi:application
 # gunicorn BackEnd.asgi:application --bind 0.0.0.0:8001 --log-level debug
 

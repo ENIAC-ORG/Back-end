@@ -49,19 +49,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
         room = await sync_to_async(Room.objects.get)(id=self.room_id)
         messages = await sync_to_async(list)(room.messages.order_by('created_at').select_related('user').all())
 
-        for message in messages:
-            if message:  # Ensure the message exists
-                firstname = await sync_to_async(lambda: message.user.firstname if message.user else None)()
-                lastname = await sync_to_async(lambda: message.user.lastname if message.user else None)()
+        # for message in messages:
+        #     if message:  # Ensure the message exists
+        #         firstname = await sync_to_async(lambda: message.user.firstname if message.user else None)()
+        #         lastname = await sync_to_async(lambda: message.user.lastname if message.user else None)()
 
-                await self.send(text_data=json.dumps({
-                    'id': message.id if message.id else None,
-                    'content': message.content if message.content else '',
-                    'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else None,
-                    'firstname': firstname,
-                    'lastname': lastname,
-                    'is_self': user.id == message.user.id if message.user else False
-                }))
+        #         await self.send(text_data=json.dumps({
+        #             'id': message.id if message.id else None,
+        #             'content': message.content if message.content else '',
+        #             'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else None,
+        #             'firstname': firstname,
+        #             'lastname': lastname,
+        #             'is_self': user.id == message.user.id if message.user else False
+        #         }))
 
         # اضافه کردن کاربر به گروه
         await self.channel_layer.group_add(
