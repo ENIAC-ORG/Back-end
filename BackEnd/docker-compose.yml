@@ -26,6 +26,7 @@ services:
       - media_volume:/app/media
       - shared_data:/app/data/
       - static_volume:/app/static
+      - /opt/models:/app/models
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_USER=${POSTGRES_USER}

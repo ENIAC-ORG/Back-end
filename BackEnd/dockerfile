@@ -1,6 +1,6 @@
 FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv supervisor build-essential python3-dev libpq-dev
+RUN apt-get update && apt-get install -y python3 python3-pip python3-venv supervisor build-essential python3-dev libpq-dev  redis-server
 
 ARG USER=root
 RUN groupadd app && useradd -g app app
@@ -32,7 +32,7 @@ COPY deploy deploy
 COPY deploy/daphne.conf /etc/supervisor/conf.d/daphne.conf
 
 RUN mkdir /logs
-RUN redis-server
+
 #RUN chmod +x docker-entrypoint.sh 
 #RUN chmod +x wait-for.sh
 # COPY data.sql data/

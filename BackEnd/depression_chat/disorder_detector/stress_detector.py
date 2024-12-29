@@ -7,8 +7,8 @@ import torch
 #
 
 def load_stress_detector_model_tokenizer():
-    tokenizer = AutoTokenizer.from_pretrained("AylinNaebzadeh/XLM-RoBERTa-FineTuned-With-Dreaddit")
-    model = AutoModelForSequenceClassification.from_pretrained("AylinNaebzadeh/XLM-RoBERTa-FineTuned-With-Dreaddit")
+    tokenizer = AutoTokenizer.from_pretrained("/app/models/XLM-RoBERTa-FineTuned-With-Dreaddit")
+    model = AutoModelForSequenceClassification.from_pretrained("/app/models/XLM-RoBERTa-FineTuned-With-Dreaddit")
     return tokenizer, model
 
 
