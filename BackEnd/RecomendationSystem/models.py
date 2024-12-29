@@ -24,9 +24,9 @@ class PatientFormResponse(models.Model):
     ,null=True)
     # انتظارات و ترجیحات درمانی
     treatment_duration = models.CharField(max_length=50, choices=[("کوتاه‌مدت", "کوتاه‌مدت"), ("بلندمدت", "بلندمدت")] , null=True)  # مدت زمان درمان
-    religion_preference = models.CharField(max_length=50, choices=[("مذهبی", "مذهبی"), ("غیرمذهبی", "غیرمذهبی"), ("فرقی نمی‌کند", "فرقی نمی‌کند")])  # ترجیح مذهبی
-    therapist_gender_preference = models.CharField(max_length=50, choices=[("زن", "زن"), ("مرد", "مرد"), ("فرقی نمی‌کند", "فرقی نمی‌کند")])  # ترجیح جنسیت درمانگر
-    presentation_preference = models.CharField(max_length=50, choices=[("حضوری", "حضوری"), ("مجازی", "مجازی"), ("فرقی نمی‌کند", "فرقی نمی‌کند")])  # ترجیح نوع جلسات
+    religion_preference = models.CharField(max_length=50, choices=[("مذهبی", "مذهبی"), ("غیرمذهبی", "غیرمذهبی"), ("فرقی نمی‌کند", "فرقی نمی‌کند")],null=True)  # ترجیح مذهبی
+    therapist_gender_preference = models.CharField(max_length=50, choices=[("زن", "زن"), ("مرد", "مرد"), ("فرقی نمی‌کند", "فرقی نمی‌کند")] , null=True)  # ترجیح جنسیت درمانگر
+    presentation_preference = models.CharField(max_length=50, choices=[("حضوری", "حضوری"), ("مجازی", "مجازی"), ("فرقی نمی‌کند", "فرقی نمی‌کند")],null=True)  # ترجیح نوع جلسات
     preferred_therapy_methods = models.JSONField(blank=True, null=True)  # روش‌های درمانی مورد نظر
     communication_preference = models.JSONField(blank=True, null=True)  # روش‌های ارتباط با درمانگر
     expectations = models.TextField(blank=True, null=True)  # انتظارات از درمانگر
@@ -44,11 +44,11 @@ class PsychologistFormResponse(models.Model):
     therapy_methods = models.JSONField()  # روش‌های درمانی
     age_groups = models.JSONField()  # گروه‌های سنی
     
-    session_preference = models.CharField(max_length=50, choices=[("حضوری", "حضوری"), ("مجازی", "مجازی"), ("هر دو", "هر دو")])  # نوع جلسات
+    session_preference = models.CharField(max_length=50, choices=[("حضوری", "حضوری"), ("مجازی", "مجازی"), ("هر دو", "هر دو")], null=True)  # نوع جلسات
     communication_preference = models.JSONField(blank=True, null=True)  # روش‌های ارتباطی
     
-    religion = models.CharField(max_length=50, choices=[("مذهبی", "مذهبی"), ("غیرمذهبی", "غیرمذهبی"), ("فرقی نمی‌کند", "فرقی نمی‌کند")])  # مذهبی یا غیرمذهبی بودن
-    gender = models.CharField(max_length=50, choices=[("زن", "زن"), ("مرد", "مرد")])  # جنسیت
+    religion = models.CharField(max_length=50, choices=[("مذهبی", "مذهبی"), ("غیرمذهبی", "غیرمذهبی"), ("فرقی نمی‌کند", "فرقی نمی‌کند")], null=True)  # مذهبی یا غیرمذهبی بودن
+    gender = models.CharField(max_length=50, choices=[("زن", "زن"), ("مرد", "مرد")], null=True)  # جنسیت
     
     experience_years = models.IntegerField()  # سابقه کاری
     max_sessions_per_week = models.IntegerField(blank=True, null=True)  # حداکثر تعداد جلسات
