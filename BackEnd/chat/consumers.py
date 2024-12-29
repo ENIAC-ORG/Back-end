@@ -61,16 +61,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # ارسال پیام‌های قبلی به کاربر
         room = await sync_to_async(Room.objects.get)(id=self.room_id)
-        messages = await sync_to_async(list)(room.messages.order_by('created_at').all())
-        
+        messages = await sync_to_async(list)(room.messages.order_by('created_at').select_related('user').all())
+
         for message in messages:
-            if message:  # Check if the message exists
+            if message:  # Ensure the message exists
+                # Ensure user is accessed in a sync-to-async manner
+                firstname = await sync_to_async(lambda: message.user.firstname if message.user else None)()
+                lastname = await sync_to_async(lambda: message.user.lastname if message.user else None)()
+
                 await self.send(text_data=json.dumps({
                     'id': message.id if message.id else None,  # Check if message ID exists
                     'content': message.content if message.content else '',  # Fallback to empty string if content is None
                     'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else None,  # Check if created_at exists
-                    'firstname': message.user.firstname if message.user and message.user.firstname else None,  # Check if user and firstname exist
-                    'lastname': message.user.lastname if message.user and message.user.lastname else None,  # Check if user and lastname exist
+                    'firstname': firstname,  # Fetched using sync_to_async
+                    'lastname': lastname,  # Fetched using sync_to_async
                     'is_self': user.id == message.user.id if message.user else False  # Validate user association
                 }))
 
