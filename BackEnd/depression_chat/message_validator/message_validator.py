@@ -3,8 +3,8 @@ import torch
 import torch.nn.functional as F
 
 def load_validator_model_and_tokenizer(model_name="/app/models/sntiment_txt_classify/"):
-    model = AutoModelForSequenceClassification.from_pretrained(model_name)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name , local_files_only=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_name , local_files_only=True)
     return model, tokenizer
 
 def predict_validator_labels(text, model, tokenizer, threshold=0.5):

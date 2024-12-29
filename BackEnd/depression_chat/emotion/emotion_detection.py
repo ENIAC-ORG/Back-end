@@ -16,8 +16,8 @@ label_dict = {
 
 
 def load_emotion_detector_model_tokenizer(model_name="/app/models/emotional_model/", num_labels=7):
-    model = XLMRobertaForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = XLMRobertaForSequenceClassification.from_pretrained(model_name, num_labels=num_labels , local_files_only=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
     return model, tokenizer
 
 import torch
