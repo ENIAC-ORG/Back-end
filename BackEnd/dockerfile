@@ -32,7 +32,7 @@ COPY deploy deploy
 COPY deploy/daphne.conf /etc/supervisor/conf.d/daphne.conf
 
 RUN mkdir /logs
-
+RUN redis-server
 #RUN chmod +x docker-entrypoint.sh 
 #RUN chmod +x wait-for.sh
 # COPY data.sql data/

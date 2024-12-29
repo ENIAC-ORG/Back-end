@@ -158,10 +158,13 @@ MIDDLEWARE = [
     # "oauth_demo.middleware.oauth.OAuthMiddleware",
 ]
 
-
+#  REDIS_HOST
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',  # In-memory layer for development
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
+        },
     },
 }
 

@@ -36,6 +36,7 @@ services:
       - DJANGO_SETTINGS_MODULE=BackEnd.settings
     depends_on:
       - db
+      - redis
     entrypoint:
       - ./docker-entrypoint.sh
     links:
@@ -43,7 +44,17 @@ services:
     networks:
       - eniac
 
-  nginx:
+    redis:
+      image: redis
+      container_name: redis
+      ports:
+        - "6379:6379"
+      command:  redis-server --save 60 1 --loglevel warning
+      restart: always
+      networks:
+        - eniac
+
+    nginx:
       image: nginx
       container_name: nginx
       restart: always
