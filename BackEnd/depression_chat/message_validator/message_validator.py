@@ -2,7 +2,7 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import torch
 import torch.nn.functional as F
 
-def load_validator_model_and_tokenizer(model_name="/app/models/sntiment_txt_classify/"):
+def load_validator_model_and_tokenizer(model_name="/app/models/sentiment_model/"):
     model = AutoModelForSequenceClassification.from_pretrained(model_name , local_files_only=True)
     tokenizer = AutoTokenizer.from_pretrained(model_name , local_files_only=True)
     return model, tokenizer
