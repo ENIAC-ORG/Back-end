@@ -21,7 +21,7 @@ class PatientFormResponse(models.Model):
     social_activities = models.BooleanField(default=False)  # فعالیت‌های اجتماعی
      # حمایت عاطفی بیمار
     support_system = models.CharField(max_length=50, choices=[("کم", "کم"), ("متوسط", "متوسط"), ("زیاد", "زیاد")],help_text="سطح حمایت اجتماعی و عاطفی بیمار"
-    )
+    ,null=True)
     # انتظارات و ترجیحات درمانی
     treatment_duration = models.CharField(max_length=50, choices=[("کوتاه‌مدت", "کوتاه‌مدت"), ("بلندمدت", "بلندمدت")])  # مدت زمان درمان
     religion_preference = models.CharField(max_length=50, choices=[("مذهبی", "مذهبی"), ("غیرمذهبی", "غیرمذهبی"), ("فرقی نمی‌کند", "فرقی نمی‌کند")])  # ترجیح مذهبی
