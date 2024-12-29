@@ -62,3 +62,4 @@ daphne
 pydub
 librosa
 soundfile
+channels_redis
