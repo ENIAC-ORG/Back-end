@@ -78,9 +78,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }))
             return
 
-        # بررسی عضویت و مجوز ارسال پیام
-     
-        membership = await sync_to_async(RoomMembership.objects.filter(
+    
+        membership = await sync_to_async( lambda: RoomMembership.objects.filter(
             user=user, room_id=self.room_id).first()
         )()
         
