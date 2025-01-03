@@ -78,8 +78,7 @@ jobs:
     name: deploy  
     runs-on: ubuntu-latest  
     steps:  
-      - uses: actions/checkout@v2  
-      
+      - uses: actions/checkout@v2    
       - name: Connect via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -88,9 +87,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /root/git/
-            echo "this is a test" >> test_cd.txt  
-            # cd /root/Back-End
-            # docker compose down  
-            # git pull  
-            # docker compose up --build -d
+            cd /root/git/Back-end/BackEnd/
+            docker compose down
+            eval $(ssh-agent)
+            ssh-add /root/.ssh/gihub_backend
+            git pull  
+            docker compose up --build -d
