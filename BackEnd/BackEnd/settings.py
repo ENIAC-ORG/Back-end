@@ -14,7 +14,7 @@ from pathlib import Path
 from environs import Env
 import os
 from datetime import timedelta
-
+import sys
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -211,24 +211,24 @@ ASGI_APPLICATION = 'BackEnd.asgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-
 DATABASES = {
-
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'TherapyDB',
         'USER': 'postgres',
         'PASSWORD': 'Hgbr@@5391',
-        'HOST': 'postgreSQL',
-        # 'HOST': 'localhost',
+        'HOST': 'postgreSQL',  # Default for production
         'PORT': '5432',
         'DISABLE_SERVER_SIDE_CURSORS': True,
-        'TEST': {
-            'NAME': 'test_TherapyDB', 
-        },
     }
 }
 
+# Adjust for tests
+if 'test' in sys.argv:
+    DATABASES['default'].update({
+        'HOST': 'localhost',
+        'NAME': 'test_TherapyDB',  # Use test database name
+    })
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 

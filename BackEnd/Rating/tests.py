@@ -7,6 +7,7 @@ from .models import Pationt, Psychiatrist, Rating
 from reservation.models import Reservation
 from accounts.models import User
 from django.contrib.auth.hashers import make_password
+from django.urls import reverse
 
 
 
@@ -68,7 +69,7 @@ class RatingViewSetTestCase(TestCase):
             "comments": ""
         }
 
-        self.rating_url = f"{settings.WEBSITE_URL}Rating/Rate/"
+        self.rating_url = self.rating_url = reverse("Rate")   #f"{settings.WEBSITE_URL}Rating/Rate/"
 
 
     @patch('Rating.models.Rating.objects.filter')  # Mock database filters

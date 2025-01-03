@@ -1,79 +1,93 @@
-name: CI
+name: Django CI/CD  
+on:  
+  push:  
+    branches: [ dev ] 
 
-on:
-  push:
-    branches: [ "dev" ]
-  pull_request:
-    branches: [ "dev" ]
-
-  workflow_dispatch:
-
-jobs:
+jobs:  
   build-and-test:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        db: [postgres]
+        python-version: ["3.10"]  # Specify a Python version that is available
+        include:
+          - db: postgres
+            db_port: 5432
     services:
       postgres:
-        image: postgres:13
+        image: postgres:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: Hgbr@@5391
-          POSTGRES_DB: test_TherapyDB
+          POSTGRES_DB: TherapyDB
         ports:
           - 5432:5432
 
     steps:
-      # Step 1: Check out the code
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3  # Use v2 with a more recent Python version
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Create virtual environment
+      working-directory: BackEnd
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+    - name: Install dependencies
+      working-directory: BackEnd
+      run: pip install -r requirements.txt
+    - name: Check Database Connection
+      working-directory: BackEnd
+      run: |
+        python -c "
+        import psycopg2
+        try:
+            conn = psycopg2.connect(
+                dbname='TherapyDB',
+                user='postgres',
+                password='Hgbr@@5391',
+                host='localhost',
+                port='5432'
+            )
+            conn.close()
+            print('Database connection successful!')
+        except Exception as e:
+            print('Database connection error:', str(e))
+            exit(1)
+        "
     
-      # Step 2: Export secrets to environment variables
-      - name: Export Secrets
-        run: |
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> $GITHUB_ENV
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
-          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
-      
-          
-      # Debugging Step
-      - name: Debug Secrets
-        run: |
-          echo "Checking PostgreSQL user: $POSTGRES_USER"
-          echo "Database name is set as $POSTGRES_DB"
+    - name: get file list
+      working-directory: BackEnd
+      run: ls -al
+    - name: Run tests
+      working-directory: BackEnd
+      env:
+          DB: ${{ matrix.db }}
+          DB_HOST: 'localhost'
+          DB_PORT: ${{ matrix.db_port }}
+          DB_PASSWORD: Hgbr@@5391
+          DB_NAME: 'TherapyDB'
+          DB_USER: 'postgres'
+          WEBSITE_URL: 'localhost'
+      run: python manage.py test
 
-      # Step 3: Set up Python
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      # Step 3.1: Debug current directory and list files
-      - name: List files and print working directory
-        working-directory: BackEnd
-        run: |
-          echo "Current working directory:" $(pwd)
-          echo "Files in the directory:"
-          ls -la
-
-      # Step 4: Install dependencies
-      - name: Install dependencies
-        working-directory: BackEnd
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      # Step 5: Wait for PostgreSQL to be ready
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U $POSTGRES_USER; do
-            echo "Waiting for PostgreSQL to be ready..."
-            sleep 1
-          done
-
-      # Step 6: Run migrations and tests
-      - name: Run Tests
-        working-directory: BackEnd
-        env:
-          DATABASE_URL: postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/$POSTGRES_DB
-        run: |
-          python manage.py migrate
-          python manage.py test
+  # Deploy:  
+  #   needs: build-and-test  # This ensures that deploy job runs only if build job succeeds  
+  #   name: deploy  
+  #   runs-on: ubuntu-latest  
+  #   steps:  
+  #     - uses: actions/checkout@v2  
+  #     - name: Connect  
+  #       uses: appleboy/ssh-action@master  
+  #       with:  
+  #         username: ${{ secrets.USERNAME }}  
+  #         password: ${{ secrets.PASSWORD }}  
+  #         host: ${{ secrets.HOST }}  
+  #         port: ${{ secrets.PORT }}  
+  #         script: |  
+  #           cd /root/Back-End
+  #           docker compose down  
+  #           git pull  
+  #           docker compose up --build -d
