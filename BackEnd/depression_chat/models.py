@@ -1,11 +1,11 @@
-from django.db import models
-from accounts.models import User
 from django.conf import settings
+from django.db import models
+# from accounts.models import User
 
 
 class Conversation(models.Model):
     name = models.CharField(max_length=255, blank=True)  #  unique=True,
-    owner = models.ForeignKey(User, related_name="conversation", on_delete=models.CASCADE)
+    owner = models.ForeignKey('accounts.User', related_name="conversation", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

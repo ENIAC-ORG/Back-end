@@ -1,9 +1,6 @@
 from django.db import models
-from django.contrib.contenttypes.fields import GenericRelation
-from django.core.validators import MinLengthValidator, MaxLengthValidator
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser , BaseUserManager
-from datetime import datetime
 from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import make_password
 import logging

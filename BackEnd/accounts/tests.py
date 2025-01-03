@@ -3,10 +3,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.test import APITestCase
 from rest_framework import status
 from unittest.mock import patch
-from accounts.models import User
+from django.contrib.auth import get_user_model
+# from accounts.models import User
+
+
 from django.conf import settings
 from unittest.mock import patch
-from accounts.models import User
 import jwt
 from .utils import generate_tokens
 from jwt.exceptions import InvalidSignatureError
@@ -28,6 +30,7 @@ class SignUpViewTestCase(APITestCase):
     @patch('accounts.views.random.randint', return_value=6795)  
     @patch('accounts.views.EmailThread.start')  
     def test_signup_success(self, mock_email_thread, mock_randint):
+        User = get_user_model()
         response = self.client.post(self.url, self.valid_data)
         # Check the HTTP response status
         
@@ -75,7 +78,9 @@ class SignUpViewTestCase(APITestCase):
         self.assertIn("Passwords must match.", response.data["password2"])
 
 class ActivationConfirmViewTest(APITestCase):
+
     def setUp(self):
+        User = get_user_model()
         self.user = User.objects.create(
             email="user@example.com",
             password="#password123#",
@@ -128,6 +133,7 @@ class ActivationConfirmViewTest(APITestCase):
 
 class ChangePasswordViewTest(APITestCase):
     def setUp(self):
+        User = get_user_model()
         self.user = User.objects.create(
             email="testuser@example.com",
             password=make_password("oldpassword123"),
@@ -204,6 +210,7 @@ class ChangePasswordViewTest(APITestCase):
 
 class LogoutViewTest(APITestCase):
     def setUp(self):
+        User = get_user_model()
         # Create a test user
         self.user = User.objects.create(
             email="testuser@example.com",
@@ -262,6 +269,7 @@ class LogoutViewTest(APITestCase):
 class LoginViewTest(APITestCase):
     def setUp(self):
         # Create a test user
+        User = get_user_model()
         self.user = User.objects.create(
             email="testuser@example.com",
             password=make_password("oldpassword123"),

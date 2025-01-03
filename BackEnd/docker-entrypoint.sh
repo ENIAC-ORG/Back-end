@@ -27,15 +27,16 @@ for app in "${apps[@]}"; do
     python manage.py makemigrations "$app" --noinput
 done
 
+echo "--------------------------- Set Admin ---------------------------"
+DJANGO_SUPERUSER_PASSWORD=eniac@1403 python manage.py createsuperuser --no-input  --email=eniakgroupiust@gmail.com
+
 echo "-------------------------- migrate -----------------------------------------" 
 #python manage.py migrate
 python manage.py migrate --noinput
 
-echo "--------------------------- Set Admin ---------------------------"
-DJANGO_SUPERUSER_PASSWORD=eniac@1403 python manage.py createsuperuser --no-input  --email=eniakgroupiust@gmail.com
 
 echo "--------------------------- Starting the Server ---------------------------"
 # python -u manage.py runserver 0.0.0.0:8000
-gunicorn BackEnd.asgi:application -w 3 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
-
+gunicorn BackEnd.asgi:application -w 3 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --log-level debug
+# gunicorn BackEnd.asgi:application --bind 0.0.0.0:8000 --log-level debug
 
