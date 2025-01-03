@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError 
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.auth import get_user_model
 
 class Psychiatrist(models.Model ) : 
     TYPE_INDIVIDUAL = "فردی"
@@ -59,6 +60,7 @@ class Psychiatrist(models.Model ) :
         return str(self.user.firstname) + " " + str(self.user.lastname)
 
     def save(self, *args, **kwargs):
+        User = get_user_model()
         """
         Check if there's already a Psychiatrist object associated with this User
         """ 
