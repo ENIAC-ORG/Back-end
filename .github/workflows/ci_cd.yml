@@ -73,24 +73,24 @@ jobs:
           WEBSITE_URL: 'localhost'
       run: python manage.py test
 
-Deploy:  
-  needs: build-and-test  # Ensures that deploy job runs only if build job succeeds  
-  name: deploy  
-  runs-on: ubuntu-latest  
-  steps:  
-    - uses: actions/checkout@v2  
-    
-    - name: Connect via SSH
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: ${{ secrets.PORT }}
-        script: |
-          cd /root/git/
-          echo "this is a test" >> test_cd.txt  
-          # cd /root/Back-End
-          # docker compose down  
-          # git pull  
-          # docker compose up --build -d
+  Deploy:  
+    needs: build-and-test  # Ensures that deploy job runs only if build job succeeds  
+    name: deploy  
+    runs-on: ubuntu-latest  
+    steps:  
+      - uses: actions/checkout@v2  
+      
+      - name: Connect via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /root/git/
+            echo "this is a test" >> test_cd.txt  
+            # cd /root/Back-End
+            # docker compose down  
+            # git pull  
+            # docker compose up --build -d
