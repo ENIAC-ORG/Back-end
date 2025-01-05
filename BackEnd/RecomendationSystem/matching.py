@@ -1,11 +1,11 @@
 def match_patient_to_psychologists(patient, psychologists):
     """
     تطبیق بیمار با روانشناسان موجود، با اولویت‌بندی و مدیریت سوالات بدون پاسخ.
-
+    
     Args:
         patient (Patient): اطلاعات بیمار.
         psychologists (QuerySet[Psychologist]): لیست روانشناسان.
-
+        
     Returns:
         List[dict]: لیستی از روانشناسان مرتب شده بر اساس امتیاز تطبیق.
     """
@@ -17,13 +17,40 @@ def match_patient_to_psychologists(patient, psychologists):
         "gender": 1,  # جنسیت روانشناس
         "religion": 1,  # مذهبی بودن روانشناس
         "session_preference": 1,  # نوع جلسات
-        "stress_level": 1,  # سطح استرس بیمار
+        "stress_level": 2,  # سطح استرس بیمار
         "energy_level": 1,  # سطح انرژی بیمار
-        "physical_conditions": 1,  # تجربه کار با مشکلات جسمی
+        "physical_conditions": 2,  # تجربه کار با مشکلات جسمی
         "crisis_management": 2,  # تجربه مدیریت بحران
-        "support_system": 1,  # حمایت عاطفی بیمار
+        "support_system": 2,  # حمایت عاطفی بیمار
+        "sleep_hours": 1,  # ساعت خواب بیمار
+        "medications": 2,  # داروهای خاص
+        "suicidal_thoughts": 3,  # آخرین فکر خودکشی
         "treatment_duration": 1,  # تطبیق مدت زمان درمان
         "communication_preference": 1,  # روش ارتباط
+    }
+
+    # تطبیق علائم بیمار با تخصص‌های روانشناس
+    symptom_to_specialty_map = {
+        "اضطراب": ["اضطراب", "اختلالات روانی شدید"],
+        "افسردگی": ["افسردگی", "اختلالات روانی شدید"],
+        "مشکلات خواب": ["مشکلات خواب"],
+        "مشکلات رفتاری": ["مشکلات رفتاری"],
+        "اختلالات خوردن": ["اختلالات خوردن"],
+        "مشکلات تمرکز": ["ADHD", "اختلالات شخصیت"],
+        "مشکلات روابط": ["مشکلات روابط", "اختلالات شخصیت"],
+        "ترس‌ها": ["اضطراب", "اختلالات روانی شدید"],
+        "پارانویا": ["اختلالات روانی شدید"],
+        "ADHD": ["ADHD"],
+    }
+
+    # روش‌های درمانی که بیمار ترجیح می‌دهد
+    therapy_method_map = {
+        "درمان شناختی-رفتاری (CBT)": "CBT",
+        "آگاهی‌حاضر (Mindfulness)": "Mindfulness",
+        "درمان خانواده": "Family Therapy",
+        "درمان روان‌تحلیلی": "Psychoanalytic",
+        "درمان هنری": "Art Therapy",
+        "درمان گروهی": "Group Therapy",
     }
 
     matches = []
@@ -32,12 +59,19 @@ def match_patient_to_psychologists(patient, psychologists):
         match_score = 0
         reasons = []
 
-        # 1. تطبیق تخصص‌ها
+        # 1. تطبیق تخصص‌ها با علائم بیمار
         if patient.symptoms:
-            matched_specialties = set(patient.symptoms).intersection(set(psychologist.specialties))
+            matched_specialties = set()
+            for symptom in patient.symptoms:
+                if symptom in symptom_to_specialty_map:
+                    matched_specialties.update(symptom_to_specialty_map[symptom])
+
+            # بررسی تطبیق تخصص‌ها
             if matched_specialties:
-                match_score += len(matched_specialties) * WEIGHTS["specialties"]
-                reasons.append(f"تطابق در تخصص‌ها: {', '.join(matched_specialties)}")
+                matched_specialties = matched_specialties.intersection(set(psychologist.specialties))
+                if matched_specialties:
+                    match_score += len(matched_specialties) * WEIGHTS["specialties"]
+                    reasons.append(f"تطابق در تخصص‌ها: {', '.join(matched_specialties)}")
 
         # 2. تطبیق روش‌های درمانی
         if patient.preferred_therapy_methods:
@@ -80,51 +114,69 @@ def match_patient_to_psychologists(patient, psychologists):
         # 7. سطح استرس بیمار
         if patient.stress_level and 7 <= int(patient.stress_level) <= 10 and psychologist.crisis_management:
             match_score += WEIGHTS["stress_level"]
-            reasons.append("روانشناس تجربه مدیریت بیماران پر استرس را دارد")
+            reasons.append("روانشناس تجربه مدیریت بحران دارد")
 
-        # 8. سطح انرژی بیمار
-        if patient.energy_level and patient.energy_level == "کم" and psychologist.therapy_methods:
-            match_score += WEIGHTS["energy_level"]
-            reasons.append("تطابق در مدیریت بیماران با انرژی پایین")
+        # 8. تطبیق مدت زمان درمان
+        if patient.treatment_duration:
+            if patient.treatment_duration == psychologist.treatment_duration:
+                match_score += WEIGHTS["treatment_duration"]
+                reasons.append(f"تطبیق در مدت زمان درمان: {patient.treatment_duration}")
 
-        # 9. مشکلات جسمی
+        # 9. تطبیق داروهای خاص
+        if patient.current_medications and psychologist.medications_experience:
+            match_score += WEIGHTS["medications"]
+            reasons.append("روانشناس تجربه مدیریت داروهای خاص دارد")
+
+        # 10. تطبیق آخرین فکر خودکشی
+        if patient.suicidal_thoughts == "بله" and psychologist.crisis_management:
+            match_score += WEIGHTS["suicidal_thoughts"]
+            reasons.append("روانشناس تجربه مدیریت خطر خودکشی دارد")
+
+        # 11. تطبیق نوع ارتباط
+        if patient.communication_preference in psychologist.communication_preference or psychologist.communication_preference == "هر دو":
+            match_score += WEIGHTS["communication_preference"]
+            reasons.append("تطبیق در نوع ارتباط")
+
+        # 12. سطح انرژی بیمار (امکان تطبیق با سایر فاکتورها)
+        if patient.energy_level:
+            if patient.energy_level == "کم" and any(specialty in ["افسردگی", "اضطراب"] for specialty in psychologist.specialties):
+                match_score += WEIGHTS["energy_level"]
+                reasons.append("روانشناس تجربه کار با بیماران با انرژی کم دارد (افسردگی/اضطراب)")
+            elif patient.energy_level == "زیاد" and "ADHD" in psychologist.specialties:
+                match_score += WEIGHTS["energy_level"]
+                reasons.append("روانشناس تجربه کار با بیماران با انرژی زیاد دارد (ADHD)")
+
+        # 13. تجربه کار با مشکلات جسمی
         if patient.physical_issues and psychologist.physical_conditions_experience:
             match_score += WEIGHTS["physical_conditions"]
-            reasons.append("تجربه با بیماران دارای مشکلات جسمی")
+            reasons.append("روانشناس تجربه کار با مشکلات جسمی دارد")
 
-        # 10. حمایت عاطفی
-        if patient.has_support_system == "خیر" and "گروه‌درمانی" in psychologist.therapy_methods:
-            match_score += WEIGHTS["support_system"]
-            reasons.append("روانشناس می‌تواند بیمار را در گروه‌درمانی حمایت کند")
+        # 14. حمایت عاطفی بیمار
+        if patient.support_system:
+            # اگر بیمار حمایت عاطفی کم دارد، به دنبال روانشناس‌هایی با روش‌های درمانی مرتبط می‌گردیم
+            if patient.support_system == "کم":
+                # روش‌های درمانی که بیشتر با حمایت عاطفی مرتبط هستند
+                preferred_methods = ["CBT", "Family Therapy", "Mindfulness"]
 
-        # 11. تجربه مدیریت بحران
-        if patient.suicidal_thoughts != "هرگز" and psychologist.crisis_management:
-            match_score += WEIGHTS["crisis_management"]
-            reasons.append("تجربه در مدیریت بحران")
+                # تطبیق با روش‌های درمانی (امتیاز تطابق نسبی از 0 تا 1)
+                matched_methods = [method for method in psychologist.therapy_methods if method in preferred_methods]
+                match_score_method = len(matched_methods) / len(preferred_methods) if preferred_methods else 0
+                match_score += match_score_method * WEIGHTS["support_system"]
+                if matched_methods:
+                    reasons.append(f"تجربه در حمایت عاطفی از طریق روش‌های درمانی مناسب: {', '.join(matched_methods)}")
+        
 
-        # 12. مدت زمان درمان
-        if psychologist.max_sessions_per_week and patient.treatment_duration:
-            if patient.treatment_duration == "کوتاه‌مدت" and psychologist.max_sessions_per_week >= 10:
-                match_score += WEIGHTS["treatment_duration"]
-                reasons.append("روانشناس توانایی مدیریت درمان کوتاه‌مدت را دارد")
-            elif patient.treatment_duration == "بلندمدت" and psychologist.max_sessions_per_week < 10:
-                match_score += WEIGHTS["treatment_duration"]
-                reasons.append("روانشناس توانایی مدیریت درمان بلندمدت را دارد")
+        # 15. ساعت خواب بیمار
+        if patient.sleep_hours and psychologist.specialties:  # فرض بر این است که روانشناس تجربه مدیریت مشکلات خواب دارد
+            if int(patient.sleep_hours) < 5 and "مشکلات خواب" in psychologist.specialties:
+                match_score += WEIGHTS["sleep_hours"]
+                reasons.append("روانشناس تجربه مدیریت مشکلات خواب دارد")
 
-        # 13. روش‌های ارتباط
-        if patient.communication_preference and psychologist.communication_preference:
-            matched_communication = set(patient.communication_preference).intersection(set(psychologist.communication_preference))
-            if matched_communication:
-                match_score += len(matched_communication) * WEIGHTS["communication_preference"]
-                reasons.append(f"تطابق در روش‌های ارتباط: {', '.join(matched_communication)}")
-
-        # جمع‌آوری نتایج
-        if match_score > 0:
-            matches.append({
-                "psychologist": psychologist,
-                "match_score": match_score,
-                "reasons": reasons,
-            })
+        matches.append({
+            "psychologist": psychologist,
+            "match_score": match_score,
+            "reasons": reasons,
+        })
 
     # مرتب‌سازی بر اساس امتیاز تطبیق
     matches = sorted(matches, key=lambda x: x["match_score"], reverse=True)

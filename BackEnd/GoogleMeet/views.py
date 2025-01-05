@@ -6,6 +6,9 @@ from google_auth_oauthlib.flow import Flow
 from reservation.models import Reservation
 from utils.google_api_helper import is_authorized, create_meet_event, save_tokens
 from utils.project_variables import GOOGLE_CLIENT_SECRETS_FILE, SCOPES
+import requests
+from google.auth.transport.requests import Request
+
 
 class GenerateGoogleMeetLinkView(APIView):
     def get(self, request, reservation_id):
@@ -14,7 +17,8 @@ class GenerateGoogleMeetLinkView(APIView):
         except Reservation.DoesNotExist:
             return Response({"error": "Reservation not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        host_email = reservation.psychiatrist.user.email
+        psychiatrist = reservation.psychiatrist
+        host_email = psychiatrist.user.email
 
         if not is_authorized(host_email):
             flow = Flow.from_client_secrets_file(
@@ -59,15 +63,24 @@ class GoogleOAuthCallbackView(APIView):
         try:
             flow.fetch_token(code=code)
             credentials = flow.credentials
-            user_email = None
-            if credentials.id_token and 'email' in credentials.id_token:
-                user_email = credentials.id_token['email']
+
+            user_email = credentials.id_token.get("email") if credentials.id_token else None
+            if not user_email:
+                userinfo_endpoint = "https://openidconnect.googleapis.com/v1/userinfo"
+                response = requests.get(
+                    userinfo_endpoint,
+                    headers={"Authorization": f"Bearer {credentials.token}"}
+                )
+                user_email = response.json().get("email")
             
             if not user_email:
                 return Response({"error": "Unable to retrieve email from Google OAuth."}, status=400)
 
-            save_tokens(user_email, credentials)
+            reservation = Reservation.objects.get(pk=reservation_id)
+            psychiatrist = reservation.psychiatrist
 
-            return redirect(f'/generate-meet-link/{reservation_id}/')
+            save_tokens(user_email, credentials, psychiatrist)
+
+            return redirect(f'https://eniacgroup.ir/googlemeet/generate-meet-link/{reservation_id}/')
         except Exception as e:
             return Response({"error": str(e)}, status=500)

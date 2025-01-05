@@ -26,6 +26,7 @@ services:
       - media_volume:/app/media
       - shared_data:/app/data/
       - static_volume:/app/static
+      - /opt/models:/app/models
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_USER=${POSTGRES_USER}
@@ -36,6 +37,7 @@ services:
       - DJANGO_SETTINGS_MODULE=BackEnd.settings
     depends_on:
       - db
+      - redis
     entrypoint:
       - ./docker-entrypoint.sh
     links:
@@ -43,20 +45,30 @@ services:
     networks:
       - eniac
 
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command:  redis-server --save 60 1 --loglevel warning
+    restart: always
+    networks:
+      - eniac
+
   nginx:
-      image: nginx
-      container_name: nginx
-      restart: always
-      ports:
-        - "8070:80"
-      volumes:
-        - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf
-        - static_volume:/home/app/static
-        - media_volume:/home/app/media
-      depends_on:
-        - backend
-      networks:
-        - eniac
+    image: nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "8070:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/home/app/static
+      - media_volume:/home/app/media
+    depends_on:
+      - backend
+    networks:
+      - eniac
 
 networks:
   eniac:

@@ -1,6 +1,6 @@
 from django.db import models
 from datetime import datetime
-# مدل گروه چت
+
 class Room(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
