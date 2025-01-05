@@ -13,6 +13,7 @@ from reservation.models import Reservation
 from accounts.models import User
 from django.contrib.auth.hashers import make_password
 import logging
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -76,12 +77,12 @@ class ReservationTestCase(APITestCase):
             month='November',
             day='چهارشنبه'
         )
-        self.create = f"{settings.WEBSITE_URL}reserve/create/"
-        self.destroy = f"{settings.WEBSITE_URL}reserve/delete/"
-        self.freetimelist = f"{settings.WEBSITE_URL}reserve/get-free-time/"
-        self.betweendate = f"{settings.WEBSITE_URL}reserve/between_dates/"
-        self.lastmonth = f"{settings.WEBSITE_URL}reserve/last_month/"
-        self.lastweek = f"{settings.WEBSITE_URL}reserve/last_week/"
+        self.create = reverse('create')
+        # self.destroy = reverse('delete')
+        # self.freetimelist = f"{settings.WEBSITE_URL}reserve/get-free-time/"
+        self.betweendate =reverse('between_dates')
+        self.lastmonth = reverse('last_month')
+        self.lastweek = reverse('last_week')
 
 
     def test_create_reservation_success(self):
@@ -106,7 +107,7 @@ class ReservationTestCase(APITestCase):
             day=self.free_time1.day
         )
 
-        response = self.client.delete(f"{self.destroy}{reservation.id}/")
+        response = self.client.delete(reverse('delete', kwargs={'pk': reservation.id}))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_list_month_success(self):
@@ -235,7 +236,7 @@ class ReservationTestCase(APITestCase):
 
     def test_destroy_reservation_not_found(self):
         # Test deleting a reservation that does not exist
-        response = self.client.delete(f"{self.destroy}9999/")
+        response = self.client.delete(reverse('delete', kwargs={'pk': 999}))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data['error'], 'Reservation not found')
 
@@ -250,7 +251,7 @@ class ReservationTestCase(APITestCase):
             day=self.free_time1.day
         )
 
-        response = self.client.delete(f"{self.destroy}{reservation.id}/")
+        response = self.client.delete(reverse('delete', kwargs={'pk': reservation.id}))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertTrue(FreeTime.objects.filter(
             psychiatrist=self.psychiatrist,
@@ -260,6 +261,6 @@ class ReservationTestCase(APITestCase):
 
     def test_list_free_times_multiple_instances(self):
         # Test retrieving multiple free times
-        response = self.client.get(f"{self.freetimelist}{self.psychiatrist.id}/")
+        response = self.client.get(reverse('GetAllFreeTime', kwargs={'pk': self.psychiatrist.id}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["Free Time List"]), 2)

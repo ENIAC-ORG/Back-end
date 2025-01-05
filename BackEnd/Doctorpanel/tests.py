@@ -72,7 +72,7 @@ class DoctorPanelViewTest(TestCase):
         )
 
     def test_post_free_times_success(self):
-        response = self.client.post('https://eniacgroup.ir/DoctorPanel/doctor/post-free-times/', self.valid_data)
+        response = self.client.post(reverse('PostFreeTimes'), self.valid_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         created_free_times = response.data
         current_year = datetime.now().year
@@ -111,8 +111,8 @@ class DoctorPanelViewTest(TestCase):
         # self.assertIn('Invalid day name.', response.data.get('error', ''))
 
         # 3. Duplicate free times
-        self.client.post('https://eniacgroup.ir/DoctorPanel/doctor/post-free-times/', self.valid_data)  # Create free times
-        response = self.client.post('https://eniacgroup.ir/DoctorPanel/doctor/post-free-times/', self.valid_data)  # Attempt duplicate
+        self.client.post(reverse('PostFreeTimes'), self.valid_data)  # Create free times
+        response = self.client.post(reverse('PostFreeTimes'), self.valid_data)  # Attempt duplicate
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
         response.data.get('error', ''),
@@ -127,7 +127,7 @@ class DoctorPanelViewTest(TestCase):
 
         # 5. Psychiatrist not found (simulating an unauthenticated user)
         self.client.logout()  # Simulate an unauthenticated request
-        response = self.client.post('https://eniacgroup.ir/DoctorPanel/doctor/post-free-times/', self.valid_data)
+        response = self.client.post(reverse('PostFreeTimes'), self.valid_data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data.get('detail', ''), 'Authentication credentials were not provided.')
 
@@ -143,7 +143,7 @@ class DoctorPanelViewTest(TestCase):
             role=User.TYPE_USER
         )
         self.client.force_authenticate(user=new_user)  # Authenticate as the new user
-        response = self.client.post('https://eniacgroup.ir/DoctorPanel/doctor/post-free-times/', self.valid_data)
+        response = self.client.post(reverse('PostFreeTimes'), self.valid_data)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data.get('error', ''), 'Psychiatrist not found.')
 
@@ -164,7 +164,7 @@ class DoctorPanelViewTest(TestCase):
         # self.assertIn('No valid dates found for the given day in this month.', response.data.get('error', ''))
 
     def test_get_free_times_success(self):
-        response = self.client.get("https://eniacgroup.ir/DoctorPanel/doctor/get-free-times/")
+        response = self.client.get(reverse('GetFreeTimes'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         free_times = response.data['Free Time List']
@@ -187,7 +187,7 @@ class DoctorPanelViewTest(TestCase):
     def test_get_free_times_failure(self):
         # 1. Unauthenticated user
         self.client.logout()  # Simulate an unauthenticated request
-        response = self.client.get("https://eniacgroup.ir/DoctorPanel/doctor/get-free-times/")
+        response = self.client.get(reverse('GetFreeTimes'))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data.get('detail', ''), 'Authentication credentials were not provided.')
 
@@ -203,7 +203,7 @@ class DoctorPanelViewTest(TestCase):
             role=User.TYPE_USER
         )
         self.client.force_authenticate(user=new_user)  # Authenticate as the new user
-        response = self.client.get("https://eniacgroup.ir/DoctorPanel/doctor/get-free-times/")
+        response = self.client.get(reverse('GetFreeTimes'))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data.get('error', ''), 'Psychiatrist not found.')
 
@@ -212,7 +212,7 @@ class DoctorPanelViewTest(TestCase):
 
         # 3. No free times available
         FreeTime.objects.all().delete()  # Remove all free times for the psychiatrist
-        response = self.client.get("https://eniacgroup.ir/DoctorPanel/doctor/get-free-times/")
+        response = self.client.get(reverse('GetFreeTimes'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['Free Time List']), 0)
 
@@ -222,7 +222,7 @@ class DoctorPanelViewTest(TestCase):
             "day": "یکشنبه",
             "time": "14:00,15:00,16:00"
         }
-        response = self.client.put('https://eniacgroup.ir/DoctorPanel/doctor/update-free-times/', update_data)
+        response = self.client.put(reverse('UpdateFreeTimes'), update_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         created_free_times = response.data
@@ -256,7 +256,7 @@ class DoctorPanelViewTest(TestCase):
             "day": "یکشنبه",
             "time": "14:00,15:00,16:00"
         }
-        response = self.client.put('https://eniacgroup.ir/DoctorPanel/doctor/update-free-times/', update_data)
+        response = self.client.put(reverse('UpdateFreeTimes'), update_data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data.get('detail', ''), 'Authentication credentials were not provided.')
 
@@ -271,7 +271,7 @@ class DoctorPanelViewTest(TestCase):
             role=User.TYPE_USER
         )
         self.client.force_authenticate(user=new_user)  # Authenticate as a non-psychiatrist user
-        response = self.client.put('https://eniacgroup.ir/DoctorPanel/doctor/update-free-times/', update_data)
+        response = self.client.put(reverse('UpdateFreeTimes'), update_data)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data.get('error', ''), 'Psychiatrist not found.')
 
@@ -290,7 +290,7 @@ class DoctorPanelViewTest(TestCase):
             "day": "سه‌شنبه",
             "time": "10:00,11:00,12:00"
         }
-        response = self.client.put('https://eniacgroup.ir/DoctorPanel/doctor/update-free-times/', non_existing_date_data)
+        response = self.client.put(reverse('UpdateFreeTimes'), non_existing_date_data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data.get('error', ''),
@@ -304,7 +304,7 @@ class DoctorPanelViewTest(TestCase):
             "time": "14:00,15:00,16:00"
         }
 
-        response = self.client.post('https://eniacgroup.ir/DoctorPanel/doctor/post-free-times/', post_data)
+        response = self.client.post(reverse('PostFreeTimes'), post_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         created_free_times = response.data
 
@@ -329,7 +329,7 @@ class DoctorPanelViewTest(TestCase):
             "time": "14:00,15:00"
         }
 
-        response = self.client.post('https://eniacgroup.ir/DoctorPanel/doctor/delete-free-times/', delete_data)
+        response = self.client.post(reverse('DeleteFreeTimes'), delete_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertIn('success', response.data)
@@ -361,7 +361,7 @@ class DoctorPanelViewTest(TestCase):
             "day": "شنبه", 
             "time": "14:00,15:00"
         }
-        response = self.client.post('https://eniacgroup.ir/DoctorPanel/doctor/delete-free-times/', delete_data)
+        response = self.client.post(reverse('DeleteFreeTimes'), delete_data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data.get('detail', ''), 'Authentication credentials were not provided.')
 
@@ -376,7 +376,7 @@ class DoctorPanelViewTest(TestCase):
             role=User.TYPE_USER
         )
         self.client.force_authenticate(user=new_user)  # Authenticate as a non-psychiatrist user
-        response = self.client.post('https://eniacgroup.ir/DoctorPanel/doctor/delete-free-times/', delete_data)
+        response = self.client.post(reverse('DeleteFreeTimes'), delete_data)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data.get('error', ''), 'Psychiatrist not found.')
 
@@ -425,7 +425,7 @@ class DoctorPanelViewTest(TestCase):
             "day": "شنبه",
             "time": "17:00,18:00"
         }
-        response = self.client.post('https://eniacgroup.ir/DoctorPanel/doctor/delete-free-times/', non_existing_time_data)
+        response = self.client.post(reverse('DeleteFreeTimes'), non_existing_time_data)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data.get('error', ''), 'Some free times were not found.')
 
@@ -459,7 +459,7 @@ class DoctorPanelViewTest(TestCase):
             "5 stars": 1   
         }
 
-        response = self.client.get('https://eniacgroup.ir/DoctorPanel/get_rating/')
+        response = self.client.get(reverse('GetRating'))
         logger.warning(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -476,7 +476,7 @@ class DoctorPanelViewTest(TestCase):
     def test_get_rating_failure(self):
         # 1. Unauthenticated user
         self.client.logout()  # Simulate an unauthenticated request
-        response = self.client.get('https://eniacgroup.ir/DoctorPanel/get_rating/')
+        response = self.client.get(reverse('GetRating'))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data.get('detail', ''), 'Authentication credentials were not provided.')
 
@@ -491,7 +491,7 @@ class DoctorPanelViewTest(TestCase):
             role=User.TYPE_USER
         )
         self.client.force_authenticate(user=new_user)  # Authenticate as a non-psychiatrist user
-        response = self.client.get('https://eniacgroup.ir/DoctorPanel/get_rating/')
+        response = self.client.get(reverse('GetRating'))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data.get('error', ''), 'Psychiatrist not found.')
 
@@ -501,7 +501,7 @@ class DoctorPanelViewTest(TestCase):
         # 3. No ratings exist for this psychiatrist
         # Ensure there are no ratings for this psychiatrist
         Rating.objects.filter(psychiatrist=self.psychiatrist).delete()
-        response = self.client.get('https://eniacgroup.ir/DoctorPanel/get_rating/')
+        response = self.client.get(reverse('GetRating'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('average_score', response.data)
         self.assertEqual(response.data['average_score'], 0)  # No ratings, so average should be 0

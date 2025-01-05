@@ -63,14 +63,14 @@ class MedicalRecordViewTests(APITestCase):
         data = {
             "child_num": 2,
             "name": "Test Name",
-            "age": 34,
+            "age": 35,
             "gender": "مرد",
             "nationalID": "1234567890",
             "family_history": True,
             "treatment_histories": treatment_histories
         }
 
-        response = self.client.post("https://eniacgroup.ir/TherapyTests/record/", data, format='json')
+        response = self.client.post(reverse('records_ops'), data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
@@ -116,7 +116,7 @@ class MedicalRecordViewTests(APITestCase):
             "family_history": True,
             "treatment_histories": treatment_histories
         }
-        response = self.client.post("https://eniacgroup.ir/TherapyTests/record/", data,format='json')
+        response = self.client.post(reverse('records_ops'), data,format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     
     def test_update_medical_record_success(self):
@@ -162,7 +162,7 @@ class MedicalRecordViewTests(APITestCase):
         update_data = {
             "child_num": 3,
             "name": "Test Name",
-            "age": 34,
+            "age": 35,
             "gender": "مرد",
             "nationalID": "0987654321",
             "family_history": False,
@@ -170,7 +170,7 @@ class MedicalRecordViewTests(APITestCase):
         }
 
         response = self.client.put(
-            "https://eniacgroup.ir/TherapyTests/record/",
+            reverse('records_ops'),
             update_data,
             format='json'
         )
@@ -240,7 +240,7 @@ class MedicalRecordViewTests(APITestCase):
         }
 
         response = self.client.put(
-            "https://eniacgroup.ir/TherapyTests/record/",
+            reverse('records_ops'),
             invalid_data_missing_fields,
             format='json'
         )
@@ -268,7 +268,7 @@ class MedicalRecordViewTests(APITestCase):
         }
 
         response = self.client.put(
-            "https://eniacgroup.ir/TherapyTests/record/",
+            reverse('records_ops'),
             invalid_data_invalid_fields,
             format='json'
         )
@@ -287,7 +287,7 @@ class MedicalRecordViewTests(APITestCase):
         }
 
         response = self.client.put(
-            "https://eniacgroup.ir/TherapyTests/record/",
+            reverse('records_ops'),
             invalid_data_malformed_nested,
             format='json'
         )
@@ -373,7 +373,7 @@ class MedicalRecordViewTests(APITestCase):
         )
 
         # Call the endpoint
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record_all/")
+        response = self.client.get(reverse('record_all'))
 
         # Validate response status code
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -408,7 +408,7 @@ class MedicalRecordViewTests(APITestCase):
         )
         self.client.force_authenticate(user=ordinary_user)
 
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record_all/")
+        response = self.client.get(reverse('record_all'))
 
         # Validate response status code and message
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -425,7 +425,7 @@ class MedicalRecordViewTests(APITestCase):
 
         self.client.force_authenticate(user=psychiatrist_user)
 
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record_all/")
+        response = self.client.get(reverse('record_all'))
 
         # Validate response status code and message
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -498,7 +498,7 @@ class MedicalRecordViewTests(APITestCase):
         )
 
         # Call the endpoint
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record_doctor_month/")
+        response = self.client.get(reverse('month_records_ops'))
 
         # Validate response status code
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -525,7 +525,7 @@ class MedicalRecordViewTests(APITestCase):
         )
         self.client.force_authenticate(user=ordinary_user)
 
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record_doctor_month/")
+        response = self.client.get(reverse('month_records_ops'))
 
         # Validate response status code and message
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -540,7 +540,7 @@ class MedicalRecordViewTests(APITestCase):
         )
         self.client.force_authenticate(user=psychiatrist_user)
 
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record_doctor_month/")
+        response = self.client.get(reverse('month_records_ops'))
 
         # Validate response status code and message
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -613,7 +613,7 @@ class MedicalRecordViewTests(APITestCase):
             )
 
             # Call the endpoint
-            response = self.client.get("https://eniacgroup.ir/TherapyTests/record_doctor_year/")
+            response = self.client.get(reverse('year_records_ops'))
 
             # Validate response status code
             self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -640,7 +640,7 @@ class MedicalRecordViewTests(APITestCase):
         )
         self.client.force_authenticate(user=ordinary_user)
 
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record_doctor_year/")
+        response = self.client.get(reverse('year_records_ops'))
 
         # Validate response status code and message
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -655,7 +655,7 @@ class MedicalRecordViewTests(APITestCase):
         )
         self.client.force_authenticate(user=psychiatrist_user)
 
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record_doctor_year/")
+        response = self.client.get(reverse('year_records_ops'))
 
         # Validate response status code and message
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -668,14 +668,14 @@ class MedicalRecordViewTests(APITestCase):
         create_data = {
             "child_num": 2,
             "name": "Test Name",
-            "age": 34,
+            "age": 35,
             "gender": "مرد",
             "nationalID": "1234567890",
             "family_history": True,
             "treatment_histories": treatment_histories
         }
 
-        create_response = self.client.post("https://eniacgroup.ir/TherapyTests/record/", create_data, format='json')
+        create_response = self.client.post(reverse('records_ops'), create_data, format='json')
         
         self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
 
@@ -697,7 +697,7 @@ class MedicalRecordViewTests(APITestCase):
         self.client.force_authenticate(user=psychiatrist_user)
 
         # GET the created MedicalRecord by ID
-        response = self.client.get(f"https://eniacgroup.ir/TherapyTests/record/{created_record_id}/")
+        response = self.client.get(reverse('patient_record', kwargs={'id': created_record_id}))
 
         # Validate response status code
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -723,7 +723,7 @@ class MedicalRecordViewTests(APITestCase):
         self.client.force_authenticate(user=ordinary_user)
 
         # Call the endpoint with a valid record ID
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record/1/")
+        response = self.client.get(reverse('patient_record', kwargs={'id': 1}))
 
         # Validate response status code and message
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -742,7 +742,7 @@ class MedicalRecordViewTests(APITestCase):
         self.client.force_authenticate(user=psychiatrist_user)
 
         # Call the endpoint with a non-existent record ID
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record/999/")  # ID 999 does not exist
+        response = self.client.get(reverse('patient_record', kwargs={'id': 999}))  # ID 999 does not exist
 
         # Validate response status code and message
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -755,19 +755,19 @@ class MedicalRecordViewTests(APITestCase):
         create_data = {
             "child_num": 2,
             "name": "Test Name",
-            "age": 34,
+            "age": 35,
             "gender": "مرد",
             "nationalID": "1234567890",
             "family_history": True,
             "treatment_histories": treatment_histories
         }
 
-        create_response = self.client.post("https://eniacgroup.ir/TherapyTests/record/", create_data, format='json')
+        create_response = self.client.post(reverse('records_ops'), create_data, format='json')
         
         self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
 
         # GET the created MedicalRecord by ID
-        response = self.client.get(f"https://eniacgroup.ir/TherapyTests/record/")
+        response = self.client.get(reverse('records_ops'))
 
         # Validate response status code
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -782,7 +782,7 @@ class MedicalRecordViewTests(APITestCase):
     def test_retrieve_retrieve_failure(self):
 
         # Call the retrieve endpoint
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record/")
+        response = self.client.get(reverse('records_ops'))
 
         # Assert that the request failed
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -796,18 +796,18 @@ class MedicalRecordViewTests(APITestCase):
         create_data = {
             "child_num": 2,
             "name": "Test Name",
-            "age": 34,
+            "age": 35,
             "gender": "مرد",
             "nationalID": "1234567890",
             "family_history": True,
             "treatment_histories": treatment_histories
         }
 
-        create_response = self.client.post("https://eniacgroup.ir/TherapyTests/record/", create_data, format='json')
+        create_response = self.client.post(reverse('records_ops'), create_data, format='json')
         
         self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
         # Call the retrieve_check endpoint
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record_check/")
+        response = self.client.get(reverse('record_check'))
 
         # Assert that the request was successful
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -818,7 +818,7 @@ class MedicalRecordViewTests(APITestCase):
     def test_retrieve_check_failure(self):
 
         # Call the retrieve_check endpoint
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/record_check/")
+        response = self.client.get(reverse('record_check'))
 
         # Assert that the request was successful
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -832,7 +832,7 @@ class MedicalRecordViewTests(APITestCase):
         create_data = {
             "child_num": 2,
             "name": "Test Name",
-            "age": 34,
+            "age": 35,
             "gender": "مرد",
             "nationalID": "1234567890",
             "family_history": True,
@@ -840,7 +840,7 @@ class MedicalRecordViewTests(APITestCase):
         }
 
         # Create a MedicalRecord
-        create_response = self.client.post("https://eniacgroup.ir/TherapyTests/record/", create_data, format='json')
+        create_response = self.client.post(reverse('records_ops'), create_data, format='json')
         self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
 
         # Extract the created record ID
@@ -868,7 +868,7 @@ class MedicalRecordViewTests(APITestCase):
 
         # Query by a partial match for the name
         query_data = {"name": "Test"}
-        response = self.client.post("https://eniacgroup.ir/TherapyTests/record/query/", query_data, format='json')
+        response = self.client.post(reverse('record_query'), query_data, format='json')
 
         # Log the response data for debugging
         print("Response data:", response.data)
@@ -893,7 +893,7 @@ class MedicalRecordViewTests(APITestCase):
         )
         self.client.force_authenticate(user=ordinary_user)
         query_data = {"name": "Test"}
-        response = self.client.post("https://eniacgroup.ir/TherapyTests/record/query/", query_data, format='json')
+        response = self.client.post(reverse('record_query'), query_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["message"], "ordinary user can not access this Information.")
 
@@ -909,7 +909,7 @@ class MedicalRecordViewTests(APITestCase):
         self.client.force_authenticate(user=psychiatrist_user)
 
         # Case 2: Psychiatrist Without Permission
-        response = self.client.post("https://eniacgroup.ir/TherapyTests/record/query/", query_data, format='json')
+        response = self.client.post(reverse('record_query'), query_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["message"], "you do not have permission.")
 
@@ -921,7 +921,7 @@ class MedicalRecordViewTests(APITestCase):
 
         # Case 3: No Matching Records
         query_data = {"name": "Nonexistent"}
-        response = self.client.post("https://eniacgroup.ir/TherapyTests/record/query/", query_data, format='json')
+        response = self.client.post(reverse('record_query'), query_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["message"], "not found any similar data.")
 
@@ -943,14 +943,14 @@ class MedicalRecordViewTests(APITestCase):
         create_data = {
             "child_num": 2,
             "name": "Test Name",
-            "age": 34,
+            "age": 35,
             "gender": "مرد",
             "nationalID": "1234567890",
             "family_history": True,
             "treatment_histories": treatment_histories
         }
 
-        create_response = self.client.post("https://eniacgroup.ir/TherapyTests/record/", create_data, format='json')
+        create_response = self.client.post(reverse('records_ops'), create_data, format='json')
         
         self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
 
@@ -968,11 +968,11 @@ class MedicalRecordViewTests(APITestCase):
 
 
         # Call the delete endpoint
-        delete_response = self.client.delete(f"https://eniacgroup.ir/TherapyTests/record/{created_record_id}/")
+        delete_response = self.client.delete(reverse('patient_record', kwargs={'id': created_record_id}))
 
         # Assert that the request was successful
         self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT)
-        get_response = self.client.get(f"https://eniacgroup.ir/TherapyTests/record/{created_record_id}/")
+        get_response = self.client.get(reverse('patient_record', kwargs={'id': created_record_id}))
         self.assertEqual(get_response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(get_response.data["message"], "There is no record with this ID.")
 
@@ -1136,12 +1136,12 @@ class GetMBTItestViewTests(APITestCase):
                 54: 'b', 55: 'a', 56: 'b', 57: 'a', 58: 'b', 59: 'b',
                 60: 'b', 61: 'a', 62: 'b', 63: 'b', 64: 'a', 65: 'b', 66: 'b',
                 67: 'a', 68: 'b', 69: 'a', 70: 'a'}
-        response = self.client.post("https://eniacgroup.ir/TherapyTests/MBTI/", data)
+        response = self.client.post(reverse('MBTI'), data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("result", response.data)
 
     def test_retrieve_mbti_test_success(self):
         TherapyTests.objects.create(pationt=self.pationt, MBTItest="INFP")
-        response = self.client.get("https://eniacgroup.ir/TherapyTests/MBTI/")
+        response = self.client.get(reverse('MBTI'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("type", response.data)
