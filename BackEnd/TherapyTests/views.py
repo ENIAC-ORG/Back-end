@@ -69,7 +69,7 @@ class MedicalRecordView(viewsets.ModelViewSet ) :
             serializer = MedicalRecordGetSerializer(instance=ress , many=True)
             return Response({"records": serializer.data}, status=status.HTTP_200_OK)
         else : 
-            return Response({"message" : "you do not have permission."} , status=status.HTTP_200_OK )
+            return Response({"message" : "you do not have permission."} , status=status.HTTP_403_FORBIDDEN )
 
     def retrieve_list_last_30_day( self , request ) : 
         user = request.user
@@ -84,7 +84,7 @@ class MedicalRecordView(viewsets.ModelViewSet ) :
             serializer = MedicalRecordGetSerializer(instance=ress , many=True)
             return Response({"records": serializer.data}, status=status.HTTP_200_OK)
         else : 
-            return Response({"message" : "you do not have permission."} , status=status.HTTP_200_OK )
+            return Response({"message" : "you do not have permission."} , status=status.HTTP_403_FORBIDDEN )
         
     def get_record_by_id(self , request , id ) : 
         user = request.user
@@ -174,14 +174,14 @@ class MedicalRecordView(viewsets.ModelViewSet ) :
             serializer = MedicalRecordGetSerializer(instance=ress , many=True)
             return Response({"records": serializer.data}, status=status.HTTP_200_OK)
         else : 
-            return Response({"message" : "you do not have permission."} , status=status.HTTP_200_OK )
+            return Response({"message" : "you do not have permission."} , status=status.HTTP_403_FORBIDDEN )
     
     def retrieve_check(self , request ) : 
         user = request.user 
         pationt = Pationt.objects.filter(user = user).first()
         records = self.queryset.filter( pationt = pationt )
         if not records.exists() : 
-            return Response({"message" : False } , status=status.HTTP_200_OK )
+            return Response({"message" : False } , status=status.HTTP_404_NOT_FOUND )
         return Response({"message" : True } , status=status.HTTP_200_OK )
 
     def retrieve(self , request ) : 
@@ -269,6 +269,7 @@ class GlasserTestView(viewsets.ModelViewSet ) :
                 'message' : 'test`s results was successfullly registered' ,   
                 "result" : categories
             }
+            
             return Response(data=data  , status=status.HTTP_200_OK ) 
                
 
@@ -375,7 +376,6 @@ class GetMBTItest(viewsets.ModelViewSet) :
         user = request.user
         pationt = Pationt.objects.filter(user = user ).first()
         print(pationt)
-        # mbti = pationt.therapytests 
         mbti = TherapyTests.objects.filter( pationt = pationt ).first()
         return Response( {"type" : mbti.MBTItest} , status=status.HTTP_200_OK )
 
