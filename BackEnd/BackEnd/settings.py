@@ -13,9 +13,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from pathlib import Path
 from environs import Env
 import os
-import sys
 from datetime import timedelta
-
+import sys
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -111,9 +110,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "daphne",
     "django.contrib.staticfiles",
-    'rest_framework_simplejwt',
     "rest_framework",
     "rest_framework_swagger",
     "rest_framework_simplejwt.token_blacklist",
@@ -158,13 +155,10 @@ MIDDLEWARE = [
     # "oauth_demo.middleware.oauth.OAuthMiddleware",
 ]
 
-#  REDIS_HOST
+
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("redis", 6379)],
-        },
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',  # In-memory layer for development
     },
 }
 
@@ -217,24 +211,6 @@ ASGI_APPLICATION = 'BackEnd.asgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-
-# DATABASES = {
-
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'TherapyDB',
-#         'USER': 'postgres',
-#         'PASSWORD': 'Hgbr@@5391',
-#         'HOST': 'postgreSQL',
-#         # 'HOST': 'localhost',
-#         'PORT': '5432',
-#         'DISABLE_SERVER_SIDE_CURSORS': True,
-#         'TEST': {
-#             'NAME': 'test_TherapyDB', 
-#         },
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
