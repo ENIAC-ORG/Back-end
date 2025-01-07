@@ -3,8 +3,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import Room, Message, RoomMembership
-from .serializers import RoomSerializer, MessageSerializer, RoomMembershipSerializer
+from .serializers import RoomSerializer, MessageSerializer
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+# from accounts.models import User
+
 
 # API View for listing and creating rooms
 class RoomListCreateView(APIView):
@@ -16,13 +19,19 @@ class RoomListCreateView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
+        User = get_user_model()
         if not request.user.is_staff:
             return Response({"error": "Only admin can create rooms."}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = RoomSerializer(data=request.data)
         if serializer.is_valid():
             room = serializer.save(created_by=request.user)
-            RoomMembership.objects.create(user=request.user, room=room, can_send_messages=True)
+
+            # Add all users to the room as members
+            all_users = User.objects.all()
+            memberships = [RoomMembership(user=user, room=room, can_send_messages=True) for user in all_users]
+            RoomMembership.objects.bulk_create(memberships)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -100,3 +109,14 @@ class ToggleRoomVisibilityView(APIView):
         room_membership.save()
 
         return Response({"message": "Room visibility toggled."}, status=status.HTTP_200_OK)
+
+class GetUserEmailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # کاربر احراز هویت شده
+        user = request.user
+        # ایمیل کاربر را از شیء کاربری دریافت می‌کنیم
+        email = user.email
+        # ایمیل را در پاسخ ارسال می‌کنیم
+        return Response({"email": email}, status=status.HTTP_200_OK)

@@ -58,5 +58,8 @@ uritemplate==4.1.1
 urllib3==2.2.3
 transformers
 python-Levenshtein
+daphne
 pydub
 librosa
+soundfile
+channels_redis

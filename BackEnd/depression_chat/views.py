@@ -14,7 +14,8 @@ import os
 import requests
 from pydub import AudioSegment
 from pydub.utils import which
-
+# بارگذاری مدل و پردازنده
+import soundfile as sf
 AudioSegment.converter = which("ffmpeg")
 
 from rest_framework.views import APIView
@@ -22,27 +23,27 @@ from rest_framework.response import Response
 from rest_framework import status
 import mimetypes
 import tempfile
-from transformers import AutoProcessor, AutoModelForSpeechSeq2Seq
+from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 import torch
 import librosa
 import tempfile
 import numpy as np
 import os
 from django.utils import timezone
-# from .disorder_detector.stress_detector import (
-#     check_for_stress_in_text,
-#     load_stress_detector_model_tokenizer,
-# )
-# from .emotion.emotion_detection import (
-#     load_emotion_detector_model_tokenizer,
-#     predict_emotion_label,
-#     predict_emotion_of_texts,
-#     label_dict,
-# )
-# from .message_validator.message_validator import (
-#     load_validator_model_and_tokenizer,
-#     predict_validator_labels,
-# )
+from .disorder_detector.stress_detector import (
+    check_for_stress_in_text,
+    load_stress_detector_model_tokenizer,
+)
+from .emotion.emotion_detection import (
+    load_emotion_detector_model_tokenizer,
+    predict_emotion_label,
+    predict_emotion_of_texts,
+    label_dict,
+)
+from .message_validator.message_validator import (
+    load_validator_model_and_tokenizer,
+    predict_validator_labels,
+)
 from dotenv import load_dotenv
 
 import logging
@@ -50,9 +51,9 @@ import logging
 logger = logging.getLogger(__name__)
 load_dotenv()
 
-# validator_model, validator_tokenizer = load_validator_model_and_tokenizer()
-# emotion_model, emotion_tokenizer = load_emotion_detector_model_tokenizer()
-# disorder_tokenizer, disorder_model = load_stress_detector_model_tokenizer()
+validator_model, validator_tokenizer = load_validator_model_and_tokenizer()
+emotion_model, emotion_tokenizer = load_emotion_detector_model_tokenizer()
+disorder_tokenizer, disorder_model = load_stress_detector_model_tokenizer()
 
 def is_wav_file(file_path):
     try:
@@ -63,30 +64,59 @@ def is_wav_file(file_path):
 
 
 
-# بارگذاری مدل و پردازنده
-processor = AutoProcessor.from_pretrained("openai/whisper-large-v2")
-model = AutoModelForSpeechSeq2Seq.from_pretrained("openai/whisper-large-v2")
+# Step 1: Resample Audio to 16kHz
+def resample_audio(input_path, output_path, target_sampling_rate=16000):
+    """Resample audio file to target sampling rate."""
+    try:
+        # Load the audio file with its original sampling rate
+        audio, original_sampling_rate = librosa.load(input_path, sr=None)
+
+        # Resample if needed
+        if original_sampling_rate != target_sampling_rate:
+            audio = librosa.resample(audio, orig_sr=original_sampling_rate, target_sr=target_sampling_rate)
+
+        # Save the resampled audio
+        sf.write(output_path, audio, target_sampling_rate)
+    except Exception as e:
+        raise RuntimeError(f"Error during resampling: {str(e)}")
 
 def process_audio_to_text(audio_file):
     """
-    پردازش فایل صوتی به متن با استفاده از مدل Whisper
+    پردازش فایل صوتی به متن با استفاده از مدل Wav2Vec2
     """
-    # Load audio file
-    audio, rate = librosa.load(audio_file, sr=16000)  # Ensure the sampling rate is 16kHz
+    try:
+        # Ensure audio file is resampled to 16kHz
+        resampled_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+        resample_audio(audio_file, resampled_file)
 
-    # Convert to the expected input format
-    input_features = processor(audio, sampling_rate=rate, return_tensors="pt").input_features
+        # Load the resampled audio file
+        audio_input, sample_rate = sf.read(resampled_file)
 
-    # Perform inference
-    with torch.no_grad():
-        generated_ids = model.generate(input_features)
+        # Process the audio
+        input_values = processor(audio_input, sampling_rate=sample_rate, return_tensors="pt", padding=True).input_values
 
-    # Decode the generated IDs to text
-    transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        # Perform inference
+        with torch.no_grad():
+            logits = model(input_values).logits
+
+        # Get predicted IDs
+        predicted_ids = torch.argmax(logits, dim=-1)
+
+        # Decode the predicted IDs to text
+        transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+
+    except Exception as e:
+        raise RuntimeError(f"Error during audio processing: {str(e)}")
+    finally:
+        # Cleanup the temporary resampled file
+        if os.path.exists(resampled_file):
+            os.remove(resampled_file)
 
     return transcription
 
-    
+# Initialize the processor and model
+processor = Wav2Vec2Processor.from_pretrained("jonatasgrosman/wav2vec2-large-xlsr-53-persian")
+model = Wav2Vec2ForCTC.from_pretrained("jonatasgrosman/wav2vec2-large-xlsr-53-persian")
 
 class ProcessWavVoiceView(APIView):
     def post(self, request, *args, **kwargs):
@@ -98,32 +128,49 @@ class ProcessWavVoiceView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # ذخیره موقت فایل برای بررسی نوع
-        with tempfile.NamedTemporaryFile(delete=True) as temp_file:
-            for chunk in voice_file.chunks():
-                temp_file.write(chunk)
-            temp_file.seek(0)
+        # ذخیره موقت فایل برای پردازش
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_wav_file:
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    # ذخیره فایل آپلود شده
+                    for chunk in voice_file.chunks():
+                        temp_file.write(chunk)
+                    temp_file.seek(0)
 
-            # بررسی نوع فایل با استفاده از pydub
-            try:
-                audio = AudioSegment.from_file(temp_file.name, format="wav")
-            except Exception:
-                return Response(
-                    {"message": "Only valid WAV files are allowed."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                    # شناسایی و تبدیل به WAV
+                    try:
+                        audio = AudioSegment.from_file(temp_file.name)
+                        audio.export(temp_wav_file.name, format="wav")  # تبدیل به WAV
+                    except Exception as e:
+                        return Response(
+                            {"message": f"Error converting audio file: {str(e)}"},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
 
-        # پردازش فایل صوتی به متن
-        processed_text = process_audio_to_text(voice_file)
+                # مسیر فایل WAV
+                wav_file_path = temp_wav_file.name
+
+            # پردازش فایل صوتی به متن
+            processed_text = process_audio_to_text(wav_file_path)
+
+        except Exception as e:
+            return Response(
+                {"message": f"Error processing audio file: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        finally:
+            # حذف فایل موقت WAV
+            if os.path.exists(wav_file_path):
+                os.remove(wav_file_path)
 
         return Response(
             {
-                "message": "WAV file processed successfully.",
+                "message": "Audio file processed successfully.",
                 "processed_text": processed_text
             },
             status=status.HTTP_200_OK
         )
-
 
 class DepressionChatView(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
