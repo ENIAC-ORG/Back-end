@@ -13,8 +13,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from pathlib import Path
 from environs import Env
 import os
-from datetime import timedelta
 import sys
+from datetime import timedelta
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -49,10 +50,18 @@ EMAIL_HOST_PASSWORD = 'otawrhfscdedswzd'# '%_giw.9?5=3aNQr'#env.str('EMAIL_HOST_
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 # REDIS_HOST = os.environ.get('REDIS_HOST', '154.211.2.87') 
+CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS =[
-    'http://*',
-    'https://*',
-    'https://eniacgroup.ir'
+    'https://eniacgroup.ir' , 
+    'http://127.0.0.1:5173' , 
+    'http://localhost:5173' , 
+    'http://46.249.100.141:5173', 
+    'http://172.19.0.5:5173' ,
+    'http://127.0.0.1:8000' , 
+    'http://localhost:8000' , 
+    'http://127.0.0.1' ,
+    'http://localhost' , 
+    'https://eniacgroup.ir/backend/' , 
 ]
 
 # Set secure cookies , for https set them to True 
@@ -110,7 +119,9 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    #"daphne",
     "django.contrib.staticfiles",
+    'rest_framework_simplejwt',
     "rest_framework",
     "rest_framework_swagger",
     "rest_framework_simplejwt.token_blacklist",
@@ -155,10 +166,13 @@ MIDDLEWARE = [
     # "oauth_demo.middleware.oauth.OAuthMiddleware",
 ]
 
-
+#  REDIS_HOST
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',  # In-memory layer for development
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
+        },
     },
 }
 
@@ -183,7 +197,7 @@ CORS_ALLOW_HEADERS = [
 
 ROOT_URLCONF = 'BackEnd.urls'
 
-CORS_ALLOW_ALL_ORIGINS = True
+
 
 TEMPLATES = [
     {
@@ -211,6 +225,24 @@ ASGI_APPLICATION = 'BackEnd.asgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+# DATABASES = {
+
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'TherapyDB',
+#         'USER': 'postgres',
+#         'PASSWORD': 'Hgbr@@5391',
+#         'HOST': 'postgreSQL',
+#         # 'HOST': 'localhost',
+#         'PORT': '5432',
+#         'DISABLE_SERVER_SIDE_CURSORS': True,
+#         'TEST': {
+#             'NAME': 'test_TherapyDB', 
+#         },
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
