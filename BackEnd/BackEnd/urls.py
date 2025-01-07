@@ -50,15 +50,16 @@ urlpatterns = [
     path('Rating/',include("Rating.urls")),
     path('DoctorPanel/',include("Doctorpanel.urls")),
     path('chat/', include("chat.urls")),
-    path('depression-chat/' , include("depression_chat.urls") ),
-     path('RecomendationSystem/', include("RecomendationSystem.urls")),
+    # path('depression-chat/' , include("depression_chat.urls") ),
+    path('RecomendationSystem/', include("RecomendationSystem.urls")),
 ]
 
 if settings.DEBUG:
     urlpatterns += [
     url(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 ]
     
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+if settings.TEST_STAGE == False :
+    urlpatterns.append(path('depression-chat/', include("depression_chat.urls")))
     
