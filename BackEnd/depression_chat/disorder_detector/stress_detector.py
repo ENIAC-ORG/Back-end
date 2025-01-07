@@ -13,7 +13,6 @@ def load_stress_detector_model_tokenizer():
 
 
 def check_for_stress_in_text(input_text, stress_model_detc, stress_tokenizer_detc):
-    print("hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee test : ", input_text)
     inputs = stress_tokenizer_detc(input_text, return_tensors="pt")
     with torch.no_grad():
         logits = stress_model_detc(**inputs).logits
