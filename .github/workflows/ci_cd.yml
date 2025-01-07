@@ -71,7 +71,7 @@ jobs:
           DB_NAME: 'TherapyDB'
           DB_USER: 'postgres'
           WEBSITE_URL: 'localhost'
-      run: python manage.py test
+      run: python manage.py test accounts Profile counseling reservation TherapyTests Doctorpanel Rating channels depression_chat GoogleMeet recomendationSys RecomendationSystem
 
   Deploy:  
     needs: build-and-test  # Ensures that deploy job runs only if build job succeeds  
