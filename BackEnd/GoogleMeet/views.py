@@ -41,8 +41,8 @@ class GenerateGoogleMeetLinkView(APIView):
 
         host_email = OAuthToken.objects.get(psychiatrist=psychiatrist).user_email
 
-        start_time = datetime.strptime(f"{reservation.date} {reservation.time}", "%Y-%m-%d %H:%M")
-        end_time = start_time + timedelta(hours=1)  
+        start_time = datetime.strptime(f"{reservation.date} {reservation.time}", "%Y-%m-%d %H:%M:%S")
+        end_time = start_time + timedelta(hours=1)
 
         start_time = start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
         end_time = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
