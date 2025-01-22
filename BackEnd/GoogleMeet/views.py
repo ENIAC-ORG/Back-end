@@ -63,7 +63,7 @@ class GenerateGoogleMeetLinkView(APIView):
             # Send email to patient 
             send_google_meet_link_to_patient(
                 subject,
-                reservation.pationt.user.email,
+                [reservation.pationt.user.email],
                 psychiatrist_name,
                 appointment_date,
                 appointment_time,
@@ -73,7 +73,7 @@ class GenerateGoogleMeetLinkView(APIView):
             # Send email to pychiatrist 
             send_google_meet_link_to_pychiatrist(
                 subject,
-                psychiatrist.user.email,
+                [psychiatrist.user.email],
                 patient_name,
                 appointment_date,
                 appointment_time,
