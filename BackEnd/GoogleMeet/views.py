@@ -10,7 +10,7 @@ from utils.project_variables import GOOGLE_CLIENT_SECRETS_FILE, SCOPES
 import requests
 from google.auth.transport.requests import Request
 import jwt  
-
+from datetime import datetime, timedelta
 from utils.email import send_google_meet_link_to_patient , send_google_meet_link_to_pychiatrist
 
 class GenerateGoogleMeetLinkView(APIView):
@@ -41,8 +41,11 @@ class GenerateGoogleMeetLinkView(APIView):
 
         host_email = OAuthToken.objects.get(psychiatrist=psychiatrist).user_email
 
-        start_time = f"{reservation.date}T{reservation.time}:00Z"
-        end_time = f"{reservation.date}T{reservation.time}:00Z"  
+        start_time = datetime.strptime(f"{reservation.date} {reservation.time}", "%Y-%m-%d %H:%M")
+        end_time = start_time + timedelta(hours=1)  
+
+        start_time = start_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_time = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         try:
             event = create_meet_event(host_email, start_time, end_time)
