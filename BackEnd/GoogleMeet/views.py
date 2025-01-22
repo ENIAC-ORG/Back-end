@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from google_auth_oauthlib.flow import Flow
+from .models import OAuthToken
 from reservation.models import Reservation
 from utils.google_api_helper import is_authorized, create_meet_event, save_tokens
 from utils.project_variables import GOOGLE_CLIENT_SECRETS_FILE, SCOPES
@@ -10,7 +11,7 @@ import requests
 from google.auth.transport.requests import Request
 import jwt  
 
-
+from utils.email import send_google_meet_link_to_patient , send_google_meet_link_to_pychiatrist
 
 class GenerateGoogleMeetLinkView(APIView):
     def get(self, request, reservation_id):
@@ -20,7 +21,9 @@ class GenerateGoogleMeetLinkView(APIView):
             return Response({"error": "Reservation not found."}, status=status.HTTP_404_NOT_FOUND)
 
         psychiatrist = reservation.psychiatrist
-        host_email = psychiatrist.user.email
+        # host_email = psychiatrist.user.email
+        host_email = OAuthToken.objects.get(psychiatrist=psychiatrist).user_email
+
 
         if not is_authorized(psychiatrist):
             flow = Flow.from_client_secrets_file(
@@ -40,9 +43,37 @@ class GenerateGoogleMeetLinkView(APIView):
 
         try:
             event = create_meet_event(host_email, start_time, end_time)
+
             reservation.MeetingLink = event["hangoutLink"]
             reservation.save(update_fields=["MeetingLink"])
+
+            subject = "لینک شرکت در جلسه گوگل میت "
+            psychiatrist_name = psychiatrist.get_fullname()
+            patient_name = reservation.pationt.get_fullname()
+            appointment_date = str(reservation.date)
+            appointment_time = str(reservation.time)
+            link = event.get('hangoutLink')
+
+            # Send email to patient 
+            send_google_meet_link_to_patient(
+                subject,
+                reservation.pationt.user.email,
+                psychiatrist_name,
+                appointment_date,
+                appointment_time,
+                link
+            )
             
+            # Send email to pychiatrist 
+            send_google_meet_link_to_pychiatrist(
+                subject,
+                psychiatrist.user.email,
+                patient_name,
+                appointment_date,
+                appointment_time,
+                link
+            )
+
             return redirect(reservation.MeetingLink)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

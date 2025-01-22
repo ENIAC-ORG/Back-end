@@ -38,7 +38,7 @@ def send_forget_password_verification_message(
     email.send()
 
 
-def send_GoogleMeet_Link(
+def send_google_meet_link_to_patient(
     subject, recipient_list, psychiatrist_name, appointment_date, appointment_time, link
 ):
     context = {
@@ -47,7 +47,21 @@ def send_GoogleMeet_Link(
         "appointment_date": appointment_date,
         "appointment_time": appointment_time,
     }
-    html_message = render_to_string("GoogleMeetLink.html", context)
+    html_message = render_to_string("paitent_google_meet_link.html", context)
+    email = EmailMultiAlternatives(subject, "", EMAIL_HOST_USER, recipient_list)
+    email.attach_alternative(html_message, "text/html")
+    email.send()
+
+def send_google_meet_link_to_pychiatrist(
+    subject, recipient_list, patient_name, appointment_date, appointment_time, link
+):
+    context = {
+        "GoogleMeetLink": link,
+        "patient_name": patient_name,
+        "appointment_date": appointment_date,
+        "appointment_time": appointment_time,
+    }
+    html_message = render_to_string("doctor_google_meet_link.html", context)
     email = EmailMultiAlternatives(subject, "", EMAIL_HOST_USER, recipient_list)
     email.attach_alternative(html_message, "text/html")
     email.send()
@@ -105,5 +119,3 @@ def send_doctor_deny_email(subject, recipient_list,pending_user,message):
     email.attach_alternative(html_message, "text/html")
     email.send()
 
-
-# 1111
