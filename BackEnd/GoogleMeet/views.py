@@ -22,7 +22,7 @@ class GenerateGoogleMeetLinkView(APIView):
         psychiatrist = reservation.psychiatrist
         host_email = psychiatrist.user.email
 
-        if not is_authorized(host_email):
+        if not is_authorized(psychiatrist):
             flow = Flow.from_client_secrets_file(
                 GOOGLE_CLIENT_SECRETS_FILE,
                 scopes=SCOPES,
