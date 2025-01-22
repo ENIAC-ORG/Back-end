@@ -8,6 +8,8 @@ from utils.google_api_helper import is_authorized, create_meet_event, save_token
 from utils.project_variables import GOOGLE_CLIENT_SECRETS_FILE, SCOPES
 import requests
 from google.auth.transport.requests import Request
+import jwt  
+
 
 
 class GenerateGoogleMeetLinkView(APIView):
@@ -64,7 +66,18 @@ class GoogleOAuthCallbackView(APIView):
             flow.fetch_token(code=code)
             credentials = flow.credentials
 
-            user_email = credentials.id_token.get("email") if credentials.id_token else None
+            # user_email = credentials.id_token.get("email") if credentials.id_token else None
+            user_email = None
+            if credentials.id_token:
+                try:
+                    decoded_token = jwt.decode(
+                        credentials.id_token,
+                        options={"verify_signature": False},  # Disable verification for decoding
+                    )
+                    user_email = decoded_token.get("email")
+                except Exception as e:
+                    print(f"Error decoding ID token: {e}")
+
             if not user_email:
                 userinfo_endpoint = "https://openidconnect.googleapis.com/v1/userinfo"
                 response = requests.get(
