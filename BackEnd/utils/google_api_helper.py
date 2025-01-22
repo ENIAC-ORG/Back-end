@@ -6,11 +6,11 @@ from google.auth.transport.requests import Request
 from utils.project_variables import SCOPES
 import json
 
-def is_authorized(host_email):
+def is_authorized(psychiatrist):
     """
     Check if a psychiatrist has valid tokens in the database.
     """
-    return OAuthToken.objects.filter(user_email=host_email).exists()
+    return OAuthToken.objects.filter(psychiatrist=psychiatrist).exists()
 
 def save_tokens(user_email, credentials, psychiatrist):
     """

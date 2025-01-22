@@ -22,10 +22,9 @@ class GenerateGoogleMeetLinkView(APIView):
 
         psychiatrist = reservation.psychiatrist
         # host_email = psychiatrist.user.email
-        host_email = OAuthToken.objects.get(psychiatrist=psychiatrist).user_email
 
 
-        if not is_authorized(host_email):
+        if not is_authorized(psychiatrist):
             flow = Flow.from_client_secrets_file(
                 GOOGLE_CLIENT_SECRETS_FILE,
                 scopes=SCOPES,
@@ -37,6 +36,9 @@ class GenerateGoogleMeetLinkView(APIView):
             )
             request.session['reservation_id'] = reservation_id
             return redirect(authorization_url)
+
+
+        host_email = OAuthToken.objects.get(psychiatrist=psychiatrist).user_email
 
         start_time = f"{reservation.date}T{reservation.time}:00Z"
         end_time = f"{reservation.date}T{reservation.time}:00Z"  
