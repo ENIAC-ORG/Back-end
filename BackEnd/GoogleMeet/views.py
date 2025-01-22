@@ -25,7 +25,7 @@ class GenerateGoogleMeetLinkView(APIView):
         host_email = OAuthToken.objects.get(psychiatrist=psychiatrist).user_email
 
 
-        if not is_authorized(psychiatrist):
+        if not is_authorized(host_email):
             flow = Flow.from_client_secrets_file(
                 GOOGLE_CLIENT_SECRETS_FILE,
                 scopes=SCOPES,
