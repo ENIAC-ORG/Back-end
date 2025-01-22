@@ -32,6 +32,7 @@ class GenerateGoogleMeetLinkView(APIView):
             )
             authorization_url, _ = flow.authorization_url(
                 access_type='offline',
+                prompt='consent',
                 include_granted_scopes='true'
             )
             request.session['reservation_id'] = reservation_id
