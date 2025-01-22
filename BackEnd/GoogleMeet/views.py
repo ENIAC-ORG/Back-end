@@ -24,7 +24,7 @@ class GenerateGoogleMeetLinkView(APIView):
             flow = Flow.from_client_secrets_file(
                 GOOGLE_CLIENT_SECRETS_FILE,
                 scopes=SCOPES,
-                redirect_uri='https://eniacgroup.ir/googlemeet/google-oauth-callback/'
+                redirect_uri='https://eniacgroup.ir/backend/googlemeet/google-oauth-callback/'
             )
             authorization_url, _ = flow.authorization_url(
                 access_type='offline',
@@ -57,7 +57,7 @@ class GoogleOAuthCallbackView(APIView):
         flow = Flow.from_client_secrets_file(
             GOOGLE_CLIENT_SECRETS_FILE,
             scopes=SCOPES,
-            redirect_uri='https://eniacgroup.ir/googlemeet/google-oauth-callback/'
+            redirect_uri='https://eniacgroup.ir/backend/googlemeet/google-oauth-callback/'
         )
 
         try:
@@ -81,6 +81,6 @@ class GoogleOAuthCallbackView(APIView):
 
             save_tokens(user_email, credentials, psychiatrist)
 
-            return redirect(f'https://eniacgroup.ir/googlemeet/generate-meet-link/{reservation_id}/')
+            return redirect(f'https://eniacgroup.ir/backend/googlemeet/generate-meet-link/{reservation_id}/')
         except Exception as e:
             return Response({"error": str(e)}, status=500)
