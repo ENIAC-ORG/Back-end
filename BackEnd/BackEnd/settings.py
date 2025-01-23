@@ -51,20 +51,22 @@ EMAIL_HOST_PASSWORD = 'otawrhfscdedswzd'# '%_giw.9?5=3aNQr'#env.str('EMAIL_HOST_
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 # REDIS_HOST = os.environ.get('REDIS_HOST', '154.211.2.87') 
-CORS_ALLOW_ALL_ORIGINS = True
-CSRF_TRUSTED_ORIGINS =[
-    'https://eniacgroup.ir' , 
-    'http://127.0.0.1:5173' , 
-    'http://localhost:5173' , 
-    'http://46.249.100.141:5173', 
-    'http://172.19.0.5:5173' ,
-    'http://127.0.0.1:8000' , 
-    'http://localhost:8000' , 
-    'http://127.0.0.1' ,
-    'http://localhost' , 
-    'https://eniacgroup.ir/backend/' , 
+CORS_ALLOWED_ORIGINS = [
+    'https://eniacgroup.ir',
+    'http://127.0.0.1:5173',
+    'http://localhost:5173',
+    'http://46.249.100.141:5173',
 ]
 
+# Specify trusted origins for CSRF
+CSRF_TRUSTED_ORIGINS = [
+    'https://eniacgroup.ir',
+    'http://127.0.0.1:5173',
+    'http://localhost:5173',
+    'http://46.249.100.141:5173',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
 # Set secure cookies , for https set them to True 
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
@@ -312,7 +314,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 CRONJOBS = [
-    ('15 12 * * *', 'reservation.cron.scheduled_feedback_check'),
+    ('15 15 * * *', 'reservation.cron.scheduled_feedback_check'),
 ]
 
 
