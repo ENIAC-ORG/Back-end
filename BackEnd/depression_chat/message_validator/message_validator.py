@@ -2,13 +2,13 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import torch
 import torch.nn.functional as F
 
-def load_validator_model_and_tokenizer(model_name="/app/models/sentiment_model/"):
+def load_validator_model_and_tokenizer():
+    model_name="/app/models/sentiment_model/"
     model = AutoModelForSequenceClassification.from_pretrained(model_name , local_files_only=True)
     tokenizer = AutoTokenizer.from_pretrained(model_name , local_files_only=True)
     return model, tokenizer
 
-def predict_validator_labels(text, model, tokenizer, threshold=0.5):
-    
+def predict_validator_labels(text, model, tokenizer, threshold=0.5):    
     inputs = tokenizer(text, return_tensors="pt")
     model.eval()
     with torch.no_grad():

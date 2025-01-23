@@ -36,9 +36,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session engine
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [ 'eniacgroup.ir', 'www.eniacgroup.ir' , '*' , 'eniacgroup.ir/backend', 'www.eniacgroup.ir/backend' ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 
 SECURE_SSL_REDIRECT = False
 # Application definition
@@ -70,6 +71,8 @@ CSRF_COOKIE_SECURE = False
 SITE_ID = 1
 
 WEBSITE_URL = os.environ.get('WEBSITE_URL','http://localhost:8000/') 
+
+SITE_URL = 'https://eniacgroup.ir'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES' : [
@@ -112,6 +115,10 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME':  timedelta(minutes=15),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+FORCE_SCRIPT_NAME = '/backend' 
+
+TEST_STAGE = True
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -177,6 +184,9 @@ CHANNEL_LAYERS = {
 }
 
 CORS_ALLOW_CREDENTIALS = True 
+#SECURE_SSL_REDIRECT = True
+#SESSION_COOKIE_SECURE = True
+#CSRF_COOKIE_SECURE = True 
 
 CORS_ALLOW_METHODS = [
     "GET",
