@@ -31,6 +31,7 @@ class SignUpViewTestCase(APITestCase):
     @patch('accounts.views.EmailThread.start')  
     def test_signup_success(self, mock_email_thread, mock_randint):
         User = get_user_model()
+        print(" url ************************************** "  , self.url)
         response = self.client.post(self.url, self.valid_data)
         # Check the HTTP response status
         

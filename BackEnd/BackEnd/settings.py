@@ -116,8 +116,12 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-FORCE_SCRIPT_NAME = '/backend' 
-
+if ('test' in sys.argv) :
+    FORCE_SCRIPT_NAME = '' 
+else : 
+    FORCE_SCRIPT_NAME = '/backend' 
+   
+    
 TEST_STAGE = True
 
 INSTALLED_APPS = [
