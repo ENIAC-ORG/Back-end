@@ -33,7 +33,7 @@ class SignUpView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
-        
+        logger.warning( validated_data ) 
         email = self.normalize_email(validated_data["email"])
         is_doctor = validated_data.get("is_doctor", False)
         role = User.TYPE_PENDING if is_doctor else User.TYPE_USER
@@ -73,7 +73,7 @@ class SignUpView(CreateAPIView):
             "user": UserSerializer(user).data,
             "message": "User created successfully. Please check your email to activate your account.",
             "code": verification_code,
-            "url": f"http://46.249.100.141:8070/accounts/activation_confirm/{token}/",
+            "url": f"https://eniacgroup.ir/backend/accounts/activation_confirm/{token}/",
         }
         return Response(user_data, status=status.HTTP_201_CREATED)
 
