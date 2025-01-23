@@ -22,7 +22,6 @@ jobs:
           POSTGRES_DB: TherapyDB
         ports:
           - 5432:5432
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}

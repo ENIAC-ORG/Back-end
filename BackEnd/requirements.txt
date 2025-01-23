@@ -63,3 +63,4 @@ pydub
 librosa
 soundfile
 channels_redis
+django-crontab

@@ -14,6 +14,9 @@ from Doctorpanel.models import FreeTime
 from django.db import transaction
 from datetime import date , timedelta ,datetime
 from Doctorpanel.serializers import FreeTimeSerializer , GETFreeTimeSerializer
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+from .models import Reservation
 
 
 class ReservationView(viewsets.ModelViewSet ) : 
@@ -170,30 +173,11 @@ class ReservationView(viewsets.ModelViewSet ) :
         reservations = Reservation.objects.filter(date__range=[start_date, end_date], psychiatrist=doctor)
         serializer = ReserveSerializer(reservations, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-
-
-
-
-
-
-
-
-
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from .models import Reservation
 
 class FeedbackAPIView(APIView):
-
     def post(self, request, reservation_id):
         reservation = get_object_or_404(Reservation, id=reservation_id)
         feedback = request.data.get('feedback')
-
         if feedback:
             reservation.feedback = feedback
             reservation.save()
