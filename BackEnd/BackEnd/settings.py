@@ -314,7 +314,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 CRONJOBS = [
-    ('15 15 * * *', 'reservation.cron.scheduled_feedback_check'),
+    ('35 15 * * *', 'reservation.cron.scheduled_feedback_check'),
 ]
 
 
