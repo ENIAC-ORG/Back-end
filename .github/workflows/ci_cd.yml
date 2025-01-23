@@ -72,13 +72,11 @@ jobs:
           DB_USER: 'postgres'
           WEBSITE_URL: 'localhost'
       # run: python manage.py test accounts Profile counseling reservation TherapyTests Doctorpanel Rating GoogleMeet RecomendationSystem
-      run: |
-      coverage run --source='.' manage.py test accounts Profile counseling reservation TherapyTests Doctorpanel Rating GoogleMeet RecomendationSystem
+      run: coverage run --source='.' manage.py test accounts Profile counseling reservation TherapyTests Doctorpanel Rating GoogleMeet RecomendationSystem
     - name: Report coverage
       working-directory: BackEnd
-      run: |
-          coverage report
-          coverage xml
+      run: coverage report
+        
   Deploy:  
     needs: build-and-test  # Ensures that deploy job runs only if build job succeeds  
     name: deploy  
