@@ -8,7 +8,7 @@ class ReservationListSerializer(serializers.ModelSerializer):
     patient_full_name = serializers.SerializerMethodField()
     class Meta:
         model = Reservation
-        fields = ["date", "day", "time", "type", "MeetingLink","pationt","patient_full_name"]
+        fields = ["id","date", "day", "time", "type", "MeetingLink","pationt","patient_full_name"]
 
     def get_patient_full_name(self, obj):
         pationt = obj.pationt
