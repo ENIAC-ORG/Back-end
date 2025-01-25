@@ -52,8 +52,18 @@ class DoctorPanelView(viewsets.ModelViewSet):
         # Update response data with actual ratings count
         for rating_count in ratings_count:
             response_data['ratings_count'][Rating.CHOICES[rating_count['rating'] - 1][1]] = rating_count['count']
+        comments_data = [
+            {
+                "patient_name": rating.pationt.get_fullname(), 
+                "rating": rating.rating,
+                "comments": rating.comments,
+                "date":rating.date.strftime("%Y-%m-%d")
+            }
+            for rating in ratings
+        ]
 
-        return Response(response_data)
+        response_data['comments'] = comments_data
+        return Response(response_data, status=status.HTTP_200_OK)
     
     def ThisWeekResevations(self,request):
         try:
