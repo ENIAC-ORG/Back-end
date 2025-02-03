@@ -234,13 +234,14 @@ class DepressionChatView(viewsets.ModelViewSet):
     # Function to interact with OpenAI API to get a response based on chat history and patient message
     def ask_openai(self, chat_obj: ConMessage, chat_history, window_size: int = None):
         chat_history_size = len(chat_history)
-        if window_size:
+        if window_size and chat_history_size >0 :
             chat_history = chat_history.order_by("-id")[:window_size]
         messages = list()
         # Prepare the chat history to be sent to OpenAI
-        for chat in chat_history:
-            messages.append({"role": "user", "content": chat.message})
-            messages.append({"role": "system", "content": chat.response})
+        if chat_history_size >0 : 
+            for chat in chat_history:
+                messages.append({"role": "user", "content": chat.message})
+                messages.append({"role": "system", "content": chat.response})
 
         # If there are more than 3 chats, include emotional and disorder statuses in the prompt
         if chat_history_size > 3:
@@ -273,6 +274,7 @@ class DepressionChatView(viewsets.ModelViewSet):
     """
         load_dotenv()
         RAPID_API_KEY = os.getenv("RAPID_API_KEY")
+        logger.warning( "******************************* key {}".format( RAPID_API_KEY) ) 
         messages.append({"role": "user", "content": prompt})
         RAPID_API_HOST = (
             "cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com"
@@ -347,15 +349,15 @@ class DepressionChatView(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        if (timezone.now() - therapy_test.created_at).days >= 7:
+        therapy_test = therapy_test.first()
+        if (timezone.now() - therapy_test.phq9_created_at).days >= 7:
             return Response(
                 {
                     "message": "you did not have any Tests more than 7 days before, first take the phq9 test."
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+        conversation = conversation.first()
         user_msg = request.data.get("user_msg")
         if conversation.name == "":
             conversation.name = user_msg

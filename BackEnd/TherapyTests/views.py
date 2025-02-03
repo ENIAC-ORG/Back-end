@@ -13,7 +13,7 @@ from .serializer import *
 from django.forms.models import model_to_dict
 from fuzzywuzzy import fuzz
 import logging 
-
+import json
 logger = logging.getLogger(__name__)
 
 class MedicalRecordView(viewsets.ModelViewSet ) : 
@@ -283,10 +283,16 @@ class GlasserTestView(viewsets.ModelViewSet ) :
 class PHQ9test(viewsets.ModelViewSet): 
     permission_classes = [IsAuthenticated]
     def create(self, request, *args, **kwargs):
-        data = request.data 
+        data1 = request.data['data']
+        logger.warning( "**************  {} \n".format(data1) ) 
+        data1 = json.loads(data1) 
+    
+        logger.warning( "**************  {} \n".format(data1) ) 
+        data = {}
+        logger.warning( " type of ****** {}\n".format( type(data1 ) ) ) 
         try: 
-            for key in data.keys() : 
-                data[int(key)] = data[key]
+            for key in data1.keys() : 
+                data[int(key)] = data1[key]
             user = request.user
             pationt = Pationt.objects.filter(user = user).first()
             phq = phq9Results(data)                    

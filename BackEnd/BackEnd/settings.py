@@ -78,11 +78,11 @@ SITE_URL = 'https://eniacgroup.ir'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES' : [
-        'rest_framework.permissions.AllowAny'
+        'rest_framework.permissions.AllowAny' ,
     ],
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'  ,
     'DEFAULT_AUTHENTICATION_CLASSES' : [
-        'rest_framework.authentication.SessionAuthentication',
+     #   'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ]
