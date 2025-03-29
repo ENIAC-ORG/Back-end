@@ -1,0 +1,86 @@
+
+{% autoescape off %}  
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لینک  شرکت جلسه گوگل میت</title>
+    <style>
+        /* Centering the form */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 130%;
+            height: 100%;
+        }
+
+        form {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            line-height: 50px;
+        }
+        .con{
+            display: inline-block;
+            background-color: #c4c4c4;
+            width: fit-content;
+            height: fit-content;
+            border-radius: 5%;
+            padding: 20px;
+            line-height: 33px;
+        }
+        
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            width: 200px;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #a600ff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="con">
+    <h2>جزئیات جلسه</h2>
+    <p>دکتر گرامی
+        <br />شما یک جلسه مجازی با بیمار
+        {{patient_name }}
+        دارید<br />تاریخ جلسه:
+        {{ appointment_date }}
+        <br />زمان جلسه:
+        {{ appointment_time }}
+        <br />
+        برای شرکت در جلسه از لینک زیر استفاده کنید
+        <br />
+    </p>
+    <a href="{{ GoogleMeetLink }}">شرکت در جلسه گوگل میت</a>
+    <br />
+    <p>با تشکر</p></div>
+</body>
+
+</html>
+{% endautoescape %}

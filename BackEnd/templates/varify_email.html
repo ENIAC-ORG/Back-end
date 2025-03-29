@@ -1,0 +1,56 @@
+{% autoescape off %}  
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کد تایید</title>
+    <style>
+        /* Centering the form */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        form {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input[type="text"] {
+            width: 200px;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #a600ff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <form action="#" method="post" > <!-- Replace "#" with your form action URL -->
+        <label for="verification_code">کد تایید را وارد کنید:</label>
+        <input type="text" id="verification_code" name="verification_code" >
+        <br><br>
+        <a href="{{ varification_link }}" onclick="cleanUrl">
+            <input type="submit" value="ارسال">
+        </a>
+    </form>
+</body>
+</html>
+{% endautoescape %} 
